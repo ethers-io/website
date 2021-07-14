@@ -101,11 +101,11 @@
       }
 
       .section > .title {
-          border-top: 2px solid #eee;
+          border-top: 1px solid #999;
           color: #777;
           font-size: 17px;
           font-weight: bold;
-          margin: 0 25% 40px;
+          margin: 0 10% 40px;
           padding: 40px 0 20px;
           text-align: center;
       }
@@ -122,7 +122,7 @@
 
       .separator {
       dddbackground: #0f0;
-        border-bottom: 1px dashed #ccc;
+        border-bottom: 1px dashed #bbb;
         height: 0;
         margin-left: 50%;
         margin-bottom: 40px;
@@ -296,9 +296,7 @@ ddd-border: 1px solid blue;
       }
 
       .backers .backer {
-        border: 2px solid #555;
         box-sizing: border-box;
-        border-radius: 35px;
         height: 70px;
         margin-left: 50%;
         transform: translateX(-50%);
@@ -334,6 +332,10 @@ ddd-border: 1px solid blue;
         transform: translateX(-120px);
       }
 
+      #backers .backer {
+        border: 2px solid #555;
+        border-radius: 35px;
+      }
 
       .copyright {
         font-size: 12px;
@@ -434,25 +436,18 @@ ddd-border: 1px solid blue;
       </div>
       <div class="section">
         <div class="title">SPONSORS</div>
-        <div class="buckettes">
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-          <div class="buckette">Hello</div>
-        </div>
+        <div class="about">None yet... <a href="mailto:me@ricmoo.com">Interested?</a> <code>:)</code></div>
       </div>
       <div class="section">
         <div class="title">PROJECTS BUILT ON ETHERS</div>
-        <div>Lorem ipsum</div>
+        <div class="bucket-icons">
+          <a href="https://ethereum.org" rel="noreferrer noopener" target="_blank" class="icon-st-ethereum"><div class="title">Ethereum&nbsp;Foundation</div></a>
+          <a href="https://gitcoin.co" rel="noreferrer noopener" target="_blank" class="icon-st-gitcoin"><div class="title">Gitcoin</div></a>
+        </div>
+        <div class="about">...for being an integral part or and integrating with ethers.</div>
+        <div class="separator"></div>
+        <div id="projects" class="backers"></div>
+        <div class="about">...and a plethora of others.</div>
       </div>
       <div class="section">
         <div class="title">SPECIAL THANKS</div>
@@ -471,7 +466,7 @@ ddd-border: 1px solid blue;
         <div class="about">...for generously providing the free infrastructure and resources to the community</div>
         <div class="separator"></div>
         <div id="backers" class="backers"></div>
-        <div class="about">The many wonderful Gitcoin backers for their continued support and encouragement.</div>
+        <div class="about">...and the many, many wonderful Gitcoin backers for their continued support and encouragement.</div>
         <div class="separator"></div>
       </div>
     </div>
@@ -482,6 +477,7 @@ ddd-border: 1px solid blue;
     </div>
 
     <script src="./backers.js" type="text/javascript"></script>
+    <script src="./projects.js" type="text/javascript"></script>
     <script type="text/javascript">
       // Returns an array of random backers, weigted by total donations
       const getBackers = (function() {
@@ -527,51 +523,89 @@ ddd-border: 1px solid blue;
         };
       })();
 
-      const names = getBackers(120);
+      // container: div.backers
+      // items: Array<{ name, image, url? }>
+      const runZipper = function(container, items, count) {
+        if (count == null) { count = 6; }
 
-      const template = document.getElementById("template-backer");
-      const backers = document.getElementById("backers");
+        const template = document.getElementById("template-backer");
 
-      function add(name, classNames) {
-        const bucket = template.cloneNode(true);
+        function add(item, classNames) {
+          const bucket = template.cloneNode(true);
+          bucket.id = undefined;
 
-        const backer = bucket.querySelector(".backer");
-        backer.style.background = `url(./images/${ name }) center no-repeat`;
-        backer.style.backgroundSize = "contain";
+          if (item.url) { bucket.setAttribute("href", item.url); }
 
-        bucket.querySelector(".title").textContent = name;
+          const backer = bucket.querySelector(".backer");
+          backer.style.background = `url(${ item.image }) center no-repeat`;
+          backer.style.backgroundSize = "contain";
 
-        (classNames || []).forEach((name) => { bucket.classList.add(name); });
+          bucket.querySelector(".title").textContent = item.name;
 
-        backers.appendChild(bucket);
-        return bucket;
-      }
+          (classNames || []).forEach((name) => { bucket.classList.add(name); });
 
-      let index = -1;
-      function nextName() {
-        index = (index + 1) % names.length;
-        return names[index];
-      }
+          container.appendChild(bucket);
+          return bucket;
+        }
 
-      for (let i = 0; i < 6; i++) { add(nextName()); }
+        let nextIndex = 0;
+        let prefetchImage = null;
+        function nextItem(prefetch) {
+          const item = items[nextIndex];
 
-      setInterval(() => {
-        // Remove the first backer
-        const bucket = backers.firstChild;
-        bucket.classList.add("going");
-        bucket.classList.add("hiding");
-        setTimeout(() => { bucket.remove(); }, 700);
+          // Compute the next index
+          nextIndex = (nextIndex + 1) % items.length;
 
-        // Add the next backer
-        const el = add(nextName(), [ "hiding", "coming" ]);
-        setTimeout(() => {
+          // Prefetch the next image
+          if (prefetch) {
+            const nextItem = items[nextIndex];
+            prefetchImage = new Image();
+            prefetchImage.src = nextItem.image;
+            prefetchImage.onload = function(e) {
+              //console.log(`Prefetched: ${ nextItem.name }`);
+            };
+          }
+
+          return item;
+        }
+
+        for (let i = 0; i < count; i++) { add(nextItem(i === (count - 1))); }
+
+        function runOnce() {
+          // Remove the first backer
+          const bucket = container.firstChild;
+          bucket.classList.add("going");
+          bucket.classList.add("hiding");
+          setTimeout(() => { bucket.remove(); }, 700);
+
+          // Add the next backer
+          const el = add(nextItem(true), [ "hiding", "coming" ]);
+          setTimeout(() => {
             el.classList.remove("hiding");
             el.classList.remove("coming");
-        }, 0);
-      }, 4000);
+            setTimeout(runOnce, 4000);
+          }, 0);
+        }
+        setTimeout(runOnce, 4000);
+      }
 
+      runZipper(document.getElementById("backers"), getBackers(120).map((name) => ({
+        name,
+        image: `https:/\/gitcoin.co/dynamic/avatar/${ name }`,
+        url: `https://gitcoin.co/${ name }`
+      })));
 
-
+      runZipper(document.getElementById("projects"), Projects.map((p) => {
+          p.image = "projects/" + p.image;
+          return p;
+      }));
+/*
+      [ {
+        name: "Takoyaki",
+        image: "https://storage.opensea.io/0xb1de8568bbca2ade02ce0327011c526a192141a9/84658049301088209134522822280518120041232120396370866669083452696603543088633-1577325461.png",
+        url: "https://takoyaki.eth"
+      } ]);
+*/
     </script>
 
   </body>
