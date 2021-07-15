@@ -1,4 +1,5 @@
-importScripts("./ethers.umd.js");
+importScripts("./ethers.umd.min.js");
+importScripts("./inspect.js");
 
 // Hijack the logging a bit, so we can show logs in our REPL
 (function() {
@@ -6,7 +7,7 @@ importScripts("./ethers.umd.js");
         const log = console[logger].bind(console);
         console[logger] = function(...args) {
             log(...args);
-            postMessage({ action: "log", logger, args });
+            postMessage({ action: "log", logger, args: args.map(inspect) });
        };
     });
 
@@ -41,7 +42,18 @@ importScripts("./ethers.umd.js");
         self[util] = ethers.utils[util];
     });
 
+    ethers.BigNumber.prototype[inspect.custom] = function() {
+      return `[BigNumber: "${ this.toString() }"]`;
+    };
+
+    ethers.Wordlist.prototype[inspect.custom] = function() {
+      return `[Wordlist: ${ this.locale }]`;
+    };
+
 })();
+
+let _ = undefined;
+let _p = undefined;
 
 onmessage = function(e) {
   const data = JSON.parse(e.data);
@@ -50,19 +62,25 @@ onmessage = function(e) {
   try {
     result = eval(data);
   } catch (error) {
-    postMessage({ action: "sync-error", message: error.message, error: JSON.stringify(error) });
+    postMessage({ action: "sync-error", message: error.message, error: inspect(error) });
     return;
   }
 
+  _ = result;
+
   if (result instanceof Promise) {
+    _p = undefined;
     postMessage({ action: "async-running" });
     result.then((result) => {
-      postMessage({ action: "async-result", result: JSON.stringify(result) });
+      _p = result;
+      postMessage({ action: "async-result", result: inspect(result) });
     }, (error) => {
-      postMessage({ action: "async-error", message: error.message, error: JSON.stringify(error) });
+      _p = error;
+      postMessage({ action: "async-error", message: error.message, error: inspect(error) });
     });
   } else {
-    postMessage({ action: "sync-result", result: JSON.stringify(result) });
+    _p = undefined;
+    postMessage({ action: "sync-result", result: inspect(result) });
   }
 }
 
