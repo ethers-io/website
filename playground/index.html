@@ -1,0 +1,216 @@
+<html>
+  <head>
+    <title>ethers playground</title>
+    <style type="text/css">
+      html { margin: 0; }
+      body { margin: 0; }
+      #output div {
+        ddd-border: 1px solid green;
+        font-size: 24px;
+        font-family: monospace;
+        padding: 4px 30px 4px;
+        width: 100%;
+      }
+      #output div.log-warn {
+        color: #880;
+      }
+      #output div.log-error {
+        color: 800;
+      }
+      #output div.log-log {
+        color: #008;
+      }
+      #output div.entry {
+        background: url(./caret.svg) no-repeat 8px 12px;
+        background-size: 17px 17px;
+        color: #888;
+      }
+      #output div.result {
+        color: #00f;
+      }
+      #output div.pending {
+        color: #aaa;
+        font-style: italic;
+      }
+      #output div.error {
+        color: #f00;
+      }
+      textarea {
+        background: url(./caret.svg) no-repeat 8px 12px;
+        background-size: 17px 17px;
+        border: none;
+        font-size: 24px;
+        font-family: monospace;
+        ddd-height: 300px;
+        outline: none;
+        overflow: hidden;
+        padding: 4px 30px 4px;
+        width: 100%;
+      }
+      .header {
+        background-color: #2535a0;
+        color: #fff;
+        height: 70px;
+        margin-bottom: 30px;
+      }
+      .header .logo {
+        background: url(./logo.svg) no-repeat center;
+        height: 70px;
+        margin-left: 30px;
+        opacity: 0.7;
+        position: absolute;
+        width: 70px;
+      }
+      .header .title {
+        font-family: monospace;
+        font-size: 30px;
+        line-height: 70px;
+        opacity: 0.7;
+        padding: 0 100px;
+        text-align: center;
+      }
+      #send {
+        display: block;
+        font-size: 30px;
+        text-align: center;
+        transition: opacity 0.3s linear;
+      }
+      .disable {
+        pointer-events: none;
+        opacity:0.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo"></div>
+      <div class="title">ethers playground</div>
+    </div>
+    <div id="output">
+      <textarea id="input"></textarea>
+    </div>
+    <script type="text/javascript" src="./ethers.umd.js"></script>
+    <script type="module">
+      const input = document.getElementById("input");
+      const output = document.getElementById("output");
+
+      let historyCursor = null;
+      let historyCode = [ ];
+      try {
+        historyCode = JSON.parse(localStorage.getItem("history")) || [ ];
+        if (!Array.isArray(historyCode) || historyCode.filter((c) => (typeof(c) !== "string")).length) {
+          historyCode = [ ];
+        }
+      } catch (error) { console.log("JJ", error); }
+      console.log(historyCode);
+
+      function addOutput(type, content) {
+        const div = document.createElement("div");
+        div.classList.add(type);
+        div.innerText = content;
+        output.insertBefore(div, input);
+        window.scrollTo(0,document.body.scrollHeight);
+      }
+
+      let ready = false;
+      const worker = new Worker("sandbox.js");
+      worker.onmessage = function(e) {
+        const data = e.data;
+        console.log("<<<", data);
+        if (!ready && data === "ready") {
+          ready = true;
+          input.focus();
+          addOutput("entry", "version");
+          evaluate("version");
+          //addOutput("entry", "provider.network.name");
+          //evaluate("provider.network.name");
+        } else {
+          if (data.action === "log") {
+            const content = data.args.map((c) => ((c === undefined) ? "undefined": c.toString())).join(", ");
+            addOutput("log-" + data.logger, content);
+          } else if (data.action === "async-running") {
+            addOutput("pending", "pending");
+          } else if (data.action === "sync-result") {
+            addOutput("result", data.result);
+          } else if (data.action === "async-result") {
+            addOutput("result", data.result);
+          } else if (data.action === "sync-error") {
+            addOutput("error", data.message);
+          } else if (data.action === "async-error") {
+            addOutput("error", data.message);
+          }
+        }
+      }
+
+      function addHistory(code) {
+        historyCursor = null;
+        if (code !== historyCode[historyCode.length - 1]) {
+          historyCode.push(code);
+        }
+        if (code === "reset") {
+          historyCode = [ ];
+        }
+        localStorage.setItem("history", JSON.stringify(historyCode));
+      }
+
+      function evaluate(code) {
+        worker.postMessage(JSON.stringify(code));
+      }
+
+      function grow() {
+        if (input.scrollHeight > input.clientHeight) {
+          input.style.height = input.scrollHeight + "px";
+        }
+      }
+
+      function setValue(value) {
+        input.value = value;
+        grow();
+      }
+
+      input.onkeydown = function(e) {
+        const meta = (e.altKey || e.ctrlKey || e.shiftKey);
+        if (e.keyCode === 13 && !meta) {
+          const value = input.value;
+          input.style.height = null; //input.scrollHeight + "px";
+          addHistory(value);
+          evaluate(value);
+          addOutput("entry", value);
+          setValue("");
+        } else if (e.keyCode === 38 && !meta) {
+          console.log("UP", historyCursor, historyCode.length);
+          if (historyCursor == null) {
+            historyCursor = historyCode.length - 1;
+          } else {
+            historyCursor--;
+          }
+          if (historyCursor < 0) { historyCursor = 0; }
+          console.log("UP2", historyCursor, historyCode.length);
+          if (historyCursor < historyCode.length) {
+            setValue(historyCode[historyCursor]);
+          }
+        } else if (e.keyCode === 40 && !meta) {
+          console.log("DOWN", historyCursor, historyCode.length);
+          if (historyCursor != null) {
+            historyCursor++;
+            if (historyCursor < historyCode.length) {
+              setValue(historyCode[historyCursor]);
+            } else {
+              historyCursor = null
+              setValue("");
+            }
+          }
+        }
+        grow();
+      };
+
+      input.onkeyup = function(e) {
+        if (e.keyCode === 13 && !(e.altKey || e.ctrlKey || e.shiftKey)) {
+          setValue("");
+        }
+      };
+
+    </script>
+  </body>
+</html>
+

@@ -1,4 +1,21 @@
 const Projects = [{
+/* Wait for a GitHub project?
+  image: "holdberg.jpg",
+  name: "Holdbeg Financial",
+  url: "https://github.com/hodlberg",
+  score: 1
+},{
+  image: "",
+  name: "",
+  url: "",
+  score: 
+}, {
+*/
+  image: "mdtanrikulu_use-metamask.svg",
+  name: "useMetamask",
+  url: "https://github.com/mdtanrikulu/use-metamask",
+  score: 47
+},{
   image: "rkalis_allbastards-com.png",
   name: "AllBastards",
   url: "https://github.com/rkalis/allbastards.com",
@@ -23,18 +40,6 @@ const Projects = [{
   name: "Optimism",
   url: "https://github.com/ethereum-optimism/optimism",
   score: 507
-/* Wait for a GitHub project?
-}, {
-  image: "holdberg.jpg",
-  name: "Holdbeg Financial",
-  url: "https://github.com/hodlberg",
-  score: 1
-},{
-  image: "",
-  name: "",
-  url: "",
-  score: 
-*/
 },{
   image: "mycryptohq_mycrypto.png",
   name: "MyCrpyto",
@@ -51,6 +56,11 @@ const Projects = [{
   url: "https://github.com/rkalis/revoke.cash",
   score: 73
 },{
+  image: "austintgriffith_scaffold-eth.png",
+  name: "Scaffold-ETH",
+  url: "https://github.com/austintgriffith/scaffold-eth",
+  score: 2200
+},{
   image: "statechannels_statechannels.svg",
   name: "State Channels",
   url: "https://github.com/statechannels/statechannels",
@@ -61,14 +71,26 @@ const Projects = [{
   url: "https://github.com/Wallet3/Wallet3",
   score: 0
 },{
+  image: "scopelift_umbra-protocol.png",
+  name: "Umbra",
+  url: "https://github.com/ScopeLift/umbra-protocol",
+  score: 87
+},{
+  image: "unknown_whalestats.svg",
+  name: "Whalestats",
+  url: "",
+  score: 0
+},{
   image: "wighawag_mandalas.png",
   name: "Mandalas",
   url: "https://github.com/wighawag/mandalas",
-  score: 1
+  score: 2
 },{
   image: "wmitsuda_otterscan.png",
   name: "Otterscan",
   url: "https://github.com/wmitsuda/otterscan",
   score: 118
-}].sort((a, b) => (b.score - a.score));
-console.log(Projects);
+}].sort((a, b) => (b.score - a.score)).map((p) => {
+  p.image = "projects/" + p.image;
+  return p;
+});

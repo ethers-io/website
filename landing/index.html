@@ -16,6 +16,18 @@
       div {
         box-sizing: border-box;
       }
+
+      a.link {
+        color: #3c9cff;
+        border-bottom: 1px solid #c4e1ff;
+        text-decoration: none;
+      }
+
+      a.link:hover {
+        color: #102b46;
+        border-bottom: 1px solid #3c9cff;
+      }
+
       .social {
         ddd-background: rgba(0, 255, 0, 0.5);
         display: flex;
@@ -97,7 +109,7 @@
       }
 
       .section {
-        padding: 30px 0 80px;
+        padding: 30px 0 20px;
       }
 
       .section > .title {
@@ -264,7 +276,6 @@
       }
 
       .backers {
-ddd-border: 1px solid blue;
         display: flex;
         flex-flow: row nowrap;
         justify-content: space-between;
@@ -277,7 +288,6 @@ ddd-border: 1px solid blue;
       }
 
       .backers a {
-ddd-border: 1px solid blue;
         display: block;
         flex-grow: 1;
         height: 70px;
@@ -335,6 +345,10 @@ ddd-border: 1px solid blue;
       #backers .backer {
         border: 2px solid #555;
         border-radius: 35px;
+      }
+
+      #projects .backer {
+        border-radius: 5px;
       }
 
       .copyright {
@@ -436,7 +450,7 @@ ddd-border: 1px solid blue;
       </div>
       <div class="section">
         <div class="title">SPONSORS</div>
-        <div class="about">None yet... <a href="mailto:me@ricmoo.com">Interested?</a> <code>:)</code></div>
+        <div class="about">None yet... <a class="link" href="mailto:me@ricmoo.com">Interested?</a> <code>:)</code></div>
       </div>
       <div class="section">
         <div class="title">PROJECTS BUILT ON ETHERS</div>
@@ -444,7 +458,7 @@ ddd-border: 1px solid blue;
           <a href="https://ethereum.org" rel="noreferrer noopener" target="_blank" class="icon-st-ethereum"><div class="title">Ethereum&nbsp;Foundation</div></a>
           <a href="https://gitcoin.co" rel="noreferrer noopener" target="_blank" class="icon-st-gitcoin"><div class="title">Gitcoin</div></a>
         </div>
-        <div class="about">...for being an integral part or and integrating with ethers.</div>
+        <div class="about">...for being an integral part of and integrating with ethers.</div>
         <div class="separator"></div>
         <div id="projects" class="backers"></div>
         <div class="about">...and a plethora of others.</div>
@@ -470,7 +484,7 @@ ddd-border: 1px solid blue;
         <div class="separator"></div>
       </div>
     </div>
-    <div class="copyright">Copyright &copy;2021 <a href="mailto:me@ricmoo.com">Richard Moore</a>. Some rights reserved.</div>
+    <div class="copyright">Copyright &copy;2021 <a class="link" href="mailto:me@ricmoo.com">Richard Moore</a>. Some rights reserved.</div>
 
     <div id="templates" style="display: none">
       <a id="template-backer" data-href="https://ethereum.org" rel="noreferrer noopener" target="_blank"><div class="backer"></div><div class="title"></div></a>
@@ -479,6 +493,37 @@ ddd-border: 1px solid blue;
     <script src="./backers.js" type="text/javascript"></script>
     <script src="./projects.js" type="text/javascript"></script>
     <script type="text/javascript">
+
+      // Creates a timer that doesn't tick while the screen is not visible.
+      // Returns an opaque value that can be passed to clearForegroundTimer.
+      function setForegroundTimeout(callback, duration) {
+        if (duration == null) { duration = 0; }
+
+        if (typeof(document.hidden) !== "boolean") { return setTimeout(callback, duration); }
+
+        const TICK = 250;
+
+        if (duration < TICK) { return setTimeout(callback, duration); }
+
+        let elapsed = 0;
+        const timer = setInterval(() => {
+          if (document.hidden) { return; }
+
+          elapsed += TICK;
+          if (elapsed < duration) { return; }
+
+          clearInterval(timer);
+          callback();
+        }, TICK);
+
+        return { _fgTimer: true, timer };
+      }
+
+      function clearForegroundTimeout(id) {
+        if (id && id._fgTimer === true) { return clearInterval(id); }
+        return clearTimeout(id);
+      }
+
       // Returns an array of random backers, weigted by total donations
       const getBackers = (function() {
 
@@ -583,10 +628,10 @@ ddd-border: 1px solid blue;
           setTimeout(() => {
             el.classList.remove("hiding");
             el.classList.remove("coming");
-            setTimeout(runOnce, 4000);
+            setForegroundTimeout(runOnce, 4000);
           }, 0);
         }
-        setTimeout(runOnce, 4000);
+        setForegroundTimeout(runOnce, 4000);
       }
 
       runZipper(document.getElementById("backers"), getBackers(120).map((name) => ({
@@ -595,17 +640,7 @@ ddd-border: 1px solid blue;
         url: `https://gitcoin.co/${ name }`
       })));
 
-      runZipper(document.getElementById("projects"), Projects.map((p) => {
-          p.image = "projects/" + p.image;
-          return p;
-      }));
-/*
-      [ {
-        name: "Takoyaki",
-        image: "https://storage.opensea.io/0xb1de8568bbca2ade02ce0327011c526a192141a9/84658049301088209134522822280518120041232120396370866669083452696603543088633-1577325461.png",
-        url: "https://takoyaki.eth"
-      } ]);
-*/
+      runZipper(document.getElementById("projects"), Projects);
     </script>
 
   </body>

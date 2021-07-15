@@ -1,0 +1,5 @@
+obsolete/
+.DS_Store
+.tmp/
+**/*.swp
+*~
