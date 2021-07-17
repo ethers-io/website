@@ -50,6 +50,10 @@ importScripts("./inspect.js");
       return `[Wordlist: ${ this.locale }]`;
     };
 
+    Uint8Array.prototype[inspect.custom] = function() {
+      return `[Uint8Array: { ${ Array.prototype.map.call(this, (i) => String(i)).join(", ") } } ]`;
+    };
+
 })();
 
 let _ = undefined;

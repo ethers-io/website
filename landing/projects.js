@@ -46,6 +46,11 @@ const Projects = [{
   url: "https://github.com/MyCryptoHQ/MyCrypto",
   score: 968
 },{
+  image: "nachomazzara_web3playground.jpg",
+  name: "Web3 Playground",
+  url: "https://github.com/nachomazzara/web3playground",
+  score: 20
+},{
   image: "nanexcool_daistats.png",
   name: "Daistats",
   url: "https://github.com/nanexcool/daistats",
