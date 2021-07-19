@@ -6,9 +6,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://playground.ethers.org" />
     <meta property="og:image" content="https://playground.ethers.org/og-preview.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="example code in a JavaScript REPL" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
 
     <style type="text/css">
       html { margin: 0; }
@@ -56,20 +55,6 @@
       }
       #output div.error {
         color: #f00;
-      }
-      #mockTabBack {
-        display: none;
-        top: 0px;
-        opacity: 0;
-        position: absolute;
-        pointer-events: none;
-      }
-      #mockTabNext {
-        bottom: 0px;
-        display: none;
-        opacity: 0;
-        position: absolute;
-        pointer-events: none;
       }
       textarea {
         background: url(./caret.svg) no-repeat 8px 12px;
@@ -158,13 +143,14 @@
       }
 
       /* Highlight only the selected help item; if any */
+/*
       #help-items.selected > div .title {
         opacity: 0.5;
       }
       #help-items.selected > div.selected .title {
         opacity: 1;
       }
-
+*/
       #help-items > div.selected {
         background: rgba(0, 0, 0, 0.8);
       }
@@ -274,19 +260,14 @@
       <div class="search"><input id="search" placeholder="search..."></div>
       <div id="help-items"></div>
     </div>
-    <input id="mockTabBack" type="text" value="foo" />
     <div id="output">
       <textarea id="input"></textarea>
     </div>
-    <input id="mockTabNext" type="text" value="bar" />
     <script type="text/javascript" src="./ethers.umd.min.js"></script>
     <script type="text/javascript" src="./help.js"></script>
     <script type="module">
       const input = document.getElementById("input");
       const output = document.getElementById("output");
-
-      const mockTabBack = document.getElementById("mockTabBack");
-      const mockTabNext = document.getElementById("mockTabNext");
 
       let historyCursor = null;
       let historyCode = [ ];
@@ -417,9 +398,6 @@
           selEnd = curStart + assist.end;
         }
 
-        mockTabBack.style.display = getAssist(input.value, -1, selStart, selEnd) ? "block": "none";
-        mockTabNext.style.display = getAssist(input.value, 1, selStart, selEnd) ? "block": "none";
-
         setTimeout(() => {
           input.setSelectionRange(selStart, selEnd);
         }, 0);        
@@ -483,6 +461,8 @@
               setValue("");
             }
           }
+        } else if (e.keyCode === 9 && !(e.altKey || e.ctrlKey)) {
+          bounce(e.shiftKey ? -1: 1, e);
         }
         grow();
       };
@@ -499,32 +479,16 @@
             input.setSelectionRange(assist.start, assist.end);
           }, 0);
 
-          mockTabBack.style.display = getAssist(input.value, -1, assist.start, assist.end) ? "block": "none";
-          mockTabNext.style.display = getAssist(input.value, 1, assist.start, assist.end) ? "block": "none";
-
           return true;
         }
 
         return false;
       }
 
-      let lastDir = 0;
-
       input.onkeyup = function(e) {
         if (e.keyCode === 13 && !(e.altKey || e.ctrlKey || e.shiftKey)) {
           setValue("");
         }
-        lastDir = 0;
-      };
-
-      mockTabBack.onkeyup = function(e) {
-        if (e.keyCode === 9) { bounce(-1, e); }
-        lastDir = -1;
-      };
-
-      mockTabNext.onkeyup = function(e) {
-        if (e.keyCode === 9) { bounce(1, e); }
-        lastDir = 1;
       };
 
 /*
