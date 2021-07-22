@@ -104,6 +104,7 @@ const runZipper = function(container, items, count) {
 
     if (animated) {
       bucket.style.opacity = "0";
+      bucket.style.transition = "opacity 0.2s linear 0.5s, transform 0.2s ease-out 0.5s";
     }
 
     bucket.querySelector(".title").textContent = item.name;
@@ -114,8 +115,6 @@ const runZipper = function(container, items, count) {
       setTimeout(() => {
         Array.prototype.forEach.call(container.children, (child, index) => {
           const target = (index - 1) * 100;
-          child.style.opacity = (index === 0) ? "0": "1";
-          child.style.transform = `TranslateX(${ target }%)`;
           if (index === 0) {
             child.style.transition = "opacity 0.2s linear, transform 0.2s ease-in";
           } else if (child === bucket) {
@@ -123,9 +122,11 @@ const runZipper = function(container, items, count) {
           } else {
             child.style.transition = "opacity 0.3s linear 0.1s, transform 0.5s linear 0.1s";
           }
+          child.style.opacity = (index === 0) ? "0": "1";
+          child.style.transform = `TranslateX(${ target }%)`;
           child.setAttribute("data-x", target);
         });
-      }, 0);
+      }, 100);
     }
 
     return bucket;
@@ -157,15 +158,11 @@ const runZipper = function(container, items, count) {
   function runOnce() {
     // Remove the first backer
     const bucket = container.firstChild;
-    //bucket.classList.add("going");
-    //bucket.classList.add("hiding");
     setTimeout(() => { bucket.remove(); }, 2000);
 
     // Add the next backer
     const el = add(nextItem(true), true);
     setTimeout(() => {
-      //el.classList.remove("hiding");
-      //el.classList.remove("coming");
       setForegroundTimeout(runOnce, 4000);
     }, 0);
   }
