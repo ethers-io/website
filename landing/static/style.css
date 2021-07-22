@@ -1,0 +1,393 @@
+html {
+  color: #1d4c7c;
+  font-family: sans-serif;
+  margin: 0;
+}
+body {
+  margin: 0;
+}
+a {
+  box-sizing: border-box;
+}
+div {
+  box-sizing: border-box;
+}
+
+a.link {
+  color: #3c9cff;
+  border-bottom: 1px solid #c4e1ff;
+  text-decoration: none;
+}
+
+a.link:hover {
+  color: #102b46;
+  border-bottom: 1px solid #3c9cff;
+}
+
+.social {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  top: 20px;
+  right: 30px;
+  position: absolute;
+  width: 170px;
+}
+
+.social a {
+  display: block;
+  height: 40px;
+  opacity: 0.3;
+  position: relative;
+  transition: opacity 0.3s linear;
+  width: 40px;
+}
+
+.social a:hover {
+  opacity: 1;
+  transition: opacity 0.1s linear;
+}
+
+.social a .title {
+  bottom: -20px;
+  color: #aaa;
+  font-size: 14px;
+  font-weight: bold;
+  left: -30px;
+  line-height: 30px;
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s linear, transform 0.3s linear;
+  text-align: center;
+  width: 100px;
+}
+
+.social a:hover .title {
+  opacity: 1;
+  transform: translateY(10px);
+}
+
+.header {
+  padding: 50px 0 20px;
+  text-align: center;
+}
+.header .logo {
+  background: url(./logo.png) center no-repeat;
+  background-size: contain;
+  height: 150px;
+  text-align: center;
+}
+
+.header .logo a {
+  line-height: 150px;
+  display: inline-block;
+  height: 150px;
+  text-decoration: none;
+  width: 250px;
+}
+
+.header .title {
+  color: #1d4c7c;
+  font-size: 30px;
+}
+.header .description {
+  color: #668;
+  font-size: 18px;
+  font-family: sans-serif;
+  font-style: italic;
+  letter-spacing: 0.2ex;
+  padding: 50px 0 10px;
+}
+
+.header .description .smile {
+  font-color: #446;
+  font-family: monospace;
+  font-weight: bold;
+  letter-spacing: 0ex;
+}
+
+.content {
+  padding: 0 100px;
+}
+
+.section {
+  padding: 30px 0 20px;
+}
+
+.section > .title {
+    border-top: 1px solid #999;
+    color: #777;
+    font-size: 17px;
+    font-weight: bold;
+    margin: 0 10% 40px;
+    padding: 40px 0 20px;
+    text-align: center;
+}
+
+.about {
+  color: #aaa;
+  font-style: italic;
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.blurb {
+  font-size: 19px;
+  line-height: 30px;
+  margin: 0 0 40px 50%;
+  transform: translateX(-50%);
+  width: 600px;
+}
+
+.blurb li {
+  margin: 10px 0;
+}
+
+.separator {
+  border-bottom: 1px dashed #bbb;
+  height: 0;
+  margin-left: 50%;
+  margin-bottom: 40px;
+  transform: translateX(-50%);
+  width: 400px;
+}
+
+
+.buckets {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  min-width: 850px;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.bucket {
+  border: 6px solid #ddd;
+  border-radius: 25px;
+  color: inherit;
+  display: block;
+  font-weight: bold;
+  height: 175px;
+  padding: 20px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition: box-shadow 0.2s linear;
+  width: 175px;
+  overflow: hidden;
+}
+
+.bucket.inactive {
+  border: 6px solid #eee;
+  pointer-events: none;
+}
+.bucket.inactive div.icon {
+  opacity: 0.7;
+}
+.bucket.inactive div.title {
+  opacity: 0.7;
+}
+
+.bucket:hover {
+  box-shadow: 0px 0px 20px #ddd;
+  transition: box-shadow 0.05s linear;
+}
+
+.bucket .icon {
+  height: 100px;
+}
+
+.bucket .banner {
+  background: #d55;
+  border: 2px solid #800;
+  color: #fff;
+  box-shadow: 0px 0px 5px #800;
+  font-size: 16px;
+  font-weight: bold;
+  right: 0;
+  top: 0;
+  padding: 5px 0;
+  position: absolute;
+  transform: translate(25%, 50%) rotate(45deg);
+  width: 200px;
+}
+
+.bucket-icons {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  margin-left: 50%;
+  padding-bottom: 20px;
+  transform: translateX(-50%);
+  min-width: 400px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.bucket-icons a {
+  display: block;
+  flex-grow: 1;
+  height: 70px;
+  min-width: 15%;
+  margin: 0 30px 20px;
+  position: relative;
+  width: 50px;
+}
+
+.bucket-icons a .title {
+  color: #555;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 20px;
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  text-align: center;
+  top: 70px;
+  transform: translateY(-3px);
+  transition: opacity 0.1s linear, transform 0.3s linear;
+  width: 100%;
+}
+
+.bucket-icons a:hover .title {
+  opacity: 1;
+  transform: translateY(8px);
+}
+
+
+/* Zipper */
+
+.zipper {
+  height: 110px;
+  margin-left: 50%;
+  padding-bottom: 20px;
+  position: relative;
+  transform: translateX(-50%);
+  min-width: 600px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.zipper > a {
+  display: block;
+  height: 70px;
+  margin: 0 0px 20px;
+  position: absolute;
+  transition: opacity 0.3s linear, transform 0.2s ease-in;
+  width: 16.6%;
+}
+
+.zipper .image {
+  box-sizing: border-box;
+  height: 70px;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+}
+
+.zipper .title {
+  color: #777;
+  font-size: 14px;
+  font-weight: bold;
+  left: 50%;
+  line-height: 20px;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  transform: translate(-50%, -2px);
+  transition: opacity 0.1s linear, transform 0.3s linear;
+  width: 200px;
+}
+
+.zipper a:hover .title {
+  opacity: 1;
+  transform: translate(-50%, 8px);
+}
+
+
+/* Section-specific Zipper Config */
+
+#backers .image {
+  border: 2px solid #555;
+  border-radius: 35px;
+}
+
+#projects .image {
+  border-radius: 5px;
+}
+
+
+/* Copyright */
+
+.copyright {
+  font-size: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+
+/* Icons */
+
+.icon-discord {
+  background: url(./icon-discord.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-github {
+  background: url(./icon-github.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-twitter {
+  background: url(./icon-twitter.svg) center no-repeat;
+  background-size: contain;
+}
+
+.icon-docs {
+  background: url(./icon-docs.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-toolbox {
+  background: url(./icon-toolbox.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-playground {
+  background: url(./icon-playground.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-wallet {
+  background: url(./icon-wallet.svg) center no-repeat;
+  background-size: contain;
+}
+
+.icon-st-ethereum {
+  background: url(./st-ethereum.png) center no-repeat;
+  background-size: contain;
+}
+.icon-st-gitcoin {
+  background: url(./st-gitcoin.png) center no-repeat;
+  background-size: contain;
+}
+
+.icon-st-etherscan {
+  background: url(./st-etherscan.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-st-infura {
+  background: url(./st-infura.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-st-alchemy {
+  background: url(./st-alchemy.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-st-pokt {
+  background: url(./st-pokt.svg) center no-repeat;
+  background-size: contain;
+}
+
