@@ -109,6 +109,7 @@ a.link:hover {
 
 .content {
   padding: 0 100px;
+  overflow-x: hidden;
 }
 
 .section {
