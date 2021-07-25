@@ -153,7 +153,16 @@ global.exports = function inspect_(obj, options, depth, seen) {
     }
     if (typeof obj === 'object' && customInspect) {
         if (inspectSymbol && typeof obj[inspectSymbol] === 'function') {
-            return obj[inspectSymbol]();
+            var result = obj[inspectSymbol]();
+            if (result && typeof(result) === "object" && result.name && result.values) {
+              var ys = arrObjKeys(result.values, inspect);
+              if (ys.length === 0) { return result.name + ' {}'; }
+              if (indent) {
+                return result.name + ' {' + indentedJoin(ys, indent) + '}';
+              }
+              return result.name + ' { ' + ys.join(', ') + ' }';
+            }
+            return result;
         } else if (customInspect !== 'symbol' && typeof obj.inspect === 'function') {
             return obj.inspect();
         }
@@ -469,6 +478,11 @@ function arrObjKeys(obj, inspect) {
     return xs;
 }
 
+function NamedObject(name, values) {
+  this.name = name;
+  this.values = values;
+}
+
 const sandboxInspect = function(obj) {
     return exports(obj, {
         quoteStyle: "double",
@@ -481,6 +495,13 @@ Object.defineProperty(sandboxInspect, "custom", {
   enumerable: true,
   writable: false,
   value: inspectCustom    
+});
+
+Object.defineProperty(sandboxInspect, "NamedObject", {
+  configurable: false,
+  enumerable: true,
+  writable: false,
+  value: NamedObject
 });
 
 return sandboxInspect;
