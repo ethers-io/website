@@ -1,0 +1,386 @@
+html {
+  margin: 0;
+}
+body {
+  margin: 0;
+  transition: background-color 0.2s linear;
+}
+body.darkMode {
+  background: #111;
+  color: #fff;
+}
+div {
+  box-sizing: border-box;
+}
+
+.left {
+  transition: width 0.3s ease-out;
+  width: 100%;
+}
+
+.right {
+  bottom: 0;
+  position: fixed;
+  right: -370px;
+  top: 0;
+  transition: transform 0.3s ease-out;
+  width: 370px;
+}
+
+body.showOptions .left {
+  width: calc(100% - 370px);
+}
+
+body.showOptions .right {
+  transform: TranslateX(-370px);
+}
+
+/* Some browsers update transform faster than position, so this
+   prevents tearing when hiding the options */
+#banner-background {
+  background-color: #2535a0;
+  height: 70px;  
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+body.darkMode #banner-background {
+  ddd-background-color: #161f5d;
+}
+
+#banner {
+  background-color: #2535a0;
+  color: #fff;
+  height: 70px;
+  overflow: hidden;
+  position: fixed;
+  transition: background-color 0.2s linear, color 0.2s linear, width 0.3s ease-out;
+  left: 0;
+  top: 0;
+}
+
+body.darkMode #banner {
+  background-color: #000;
+  border-bottom: 1px solid #aaa;
+  color: #3b54ff;
+}
+
+#banner .logo {
+  background: url(./logo.svg) no-repeat center;
+  height: 70px;
+  margin-left: 30px;
+  opacity: 0.7;
+  position: absolute;
+  width: 70px;
+}
+#banner .title {
+  font-family: monospace;
+  font-size: 30px;
+  line-height: 70px;
+  opacity: 0.7;
+  padding: 0 100px;
+  text-align: center;
+}
+#banner #button-options {
+  background: url(./logo.svg) no-repeat center;
+  height: 70px;
+  margin-right: 30px;
+  opacity: 0.7;
+  position: absolute;
+  right: 0px;
+  top: 0;
+  width: 70px;
+}
+
+#banner #button-darkmode {
+  position: absolute;
+  right: 140px;
+  top: 20px;
+  width: 30px;
+  height: 30px;
+}
+
+#banner #button-darkmode .stars {
+  background: url(./dark-mode-stars.svg);
+  background-size: contain;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+
+  opacity: 0;
+  transition: opacity 0.3s linear 0.15s;
+}
+
+#banner #button-darkmode .light {
+  background: url(./dark-mode-sun.svg);
+  background-size: contain;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+
+  transform: translateY(0);
+  transition: transform 0.3s ease-out 0.3s;
+}
+
+#banner #button-darkmode .dark {
+  background: url(./dark-mode-moon.svg);
+  background-size: contain;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+
+  transform: translateY(70px);
+  transition: transform 0.3s ease-in;
+}
+
+body.darkMode #banner #button-darkmode .stars {
+  opacity: 1;
+  transition: opacity 0.3s linear 0.5s;
+}
+
+body.darkMode #banner #button-darkmode .light {
+  transform: translateY(70px);
+  transition: transform 0.3s ease-in;
+}
+
+body.darkMode #banner #button-darkmode .dark {
+  transform: translateY(0);
+  transition: transform 0.3s ease-out 0.3s;
+}
+
+#output {
+  margin: 0;
+  padding: 90px 30px 0 0;
+  min-height: 100%;
+  overflow: auto;
+}
+#output div {
+  font-size: 24px;
+  font-family: monospace;
+  padding: 4px 30px 4px;
+  white-space: pre;
+  width: 100%;
+}
+#output div.log-warn {
+  color: #880;
+}
+body.darMode #output div.log-warn {
+  color: #aa6;
+}
+#output div.log-error {
+  color: 800;
+}
+body.darkMode #output div.log-error {
+  color: a66;
+}
+#output div.log-log {
+  color: #008;
+}
+body.darkMode #output div.log-log {
+  color: #66a;
+}
+#output div.entry {
+  background: url(./caret.svg) no-repeat 8px 12px;
+  background-size: 17px 17px;
+  color: #888;
+}
+body.darkMode #output div.entry {
+  color: #aaa;
+}
+#output div.result {
+  color: #00f;
+}
+#output div.result-bold {
+  color: #00f;
+  font-weight: bold;
+}
+body.darkMode #output div.result {
+  color: #88f;
+}
+body.darkMode #output div.result-bold {
+  color: #88f;
+  font-weight: bold;
+}
+#output div.pending {
+  color: #aaa;
+  font-style: italic;
+}
+#output div.error {
+  color: #f00;
+}
+body.darkMode #output div.error {
+  color: #f88;
+}
+textarea {
+  background: url(./caret.svg) no-repeat 8px 12px;
+  background-size: 17px 17px;
+  border: none;
+  font-size: 24px;
+  font-family: monospace;
+  outline: none;
+  overflow: hidden;
+  padding: 4px 30px 4px;
+  width: 100%;
+}
+body.darkMode textarea {
+  color: #eee;
+}
+
+#options {
+  background: #333;
+  color: #fff;
+  font-family: monospace;
+  font-size: 18px;
+}
+
+#options .shadow-clip {
+  top: 0px;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  width: 50px;
+}
+
+#options .shadow {
+  box-shadow: -10px 0px 18px 18px #000;
+  position: absolute;
+  height: 100%;
+  width: 0;
+}
+#options .header {
+  background: #111;
+  height: 70px;
+  line-height: 70px;
+  text-align: center;
+}
+#options .search {
+  padding: 15px 20px 30px;
+  position: relative;
+}
+#options .search input {
+  border-radius: 10px;
+  font-size: 20px;
+  height: 30px;
+  outline: none;
+  line-height: 30px;
+  text-align: center;
+  width: 100%;
+}
+#options-items {
+  height: calc(100% - 145px);
+  overflow: auto;
+  padding: 15px 0 50px;
+  position: relative;
+}
+#options-items > div {
+  padding: 4px 20px;
+  transition: background-color 0.3s linear, opacity 0.3s linear;
+}
+
+/* Highlight only the selected options item; if any */
+/*
+#options-items.selected > div .title {
+  opacity: 0.5;
+}
+#options-items.selected > div.selected .title {
+  opacity: 1;
+}
+*/
+#options-items > div.selected {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Add expanded arrows to the options items */
+#options-items div .title:before {
+  content: "\25b6\00a0";
+}
+#options-items > div.selected .title:before {
+  content: "\25bc\00a0";
+}
+
+/* Options item title */
+#options-items div .title {
+  color: #ddd;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#options-items div .title .prefix {
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+#options-items div.selected .title {
+  font-weight: bold;
+}
+#options-items div .item {
+  position: relative;
+}
+#options-items div .item .use {
+  color: #88f;
+  position: absolute;
+  cursor: pointer;
+  right: 0px;
+}
+#options-items div .item .use:hover {
+  color: #8f8;
+}
+
+/* Info Blob */
+#options-items div .info .usage {
+  display: none; /* Maybe don't need this?? */
+}
+#options-items div .info {
+  color: #ddd;
+  overflow: auto;
+  padding-left: 23px;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+}
+#options-items div.selected .info {
+  color: #ddd;
+  padding-right: 7px;
+}
+/*
+#options-items div .info .usage {
+  margin-bottom: 5px;
+  white-space: nowrap;
+}
+*/
+#options-items div .info > .description {
+  color: #aaa;
+  font-size: 16px;
+  padding-top: 4px;
+}
+#options-items div .info .no-params {
+  margin-bottom: 5px;
+  line-height: 20px;
+  font-style: italic;
+  color: #aaa;
+  font-family: sans-serif;
+  font-size: 16px;
+  padding: 15px 30px 15px 0;
+  text-align: center;
+}
+#options-items div .info .param {
+  margin: 5px 0;
+}
+#options-items div .info .param .name {
+  font-weight: bold;
+}
+#options-items div .info .param .name i {
+  color: #aaa;
+  font-size: 12px;
+  font-weight: normal;
+  position: relative;
+  top: -4px;
+}
+#options-items div .info .param .description {
+  color: #aaa;
+  font-family: sans-serif;
+  font-size: 16px;
+  padding-left: 20px;
+}
