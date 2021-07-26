@@ -24,8 +24,11 @@ importScripts("./inspect.js");
 
     version = ethers.version;
 
+    BigNumber = ethers.BigNumber;
     Contract = ethers.Contract;
     ContractFactory = ethers.ContractFactory;
+    FixedNumber = ethers.FixedNumber;
+    VoidSigner = ethers.VoidSigner;
     Wallet = ethers.Wallet;
 
     providers = ethers.providers;
@@ -34,9 +37,7 @@ importScripts("./inspect.js");
 
     abiCoder = ethers.utils.defaultAbiCoder;
 
-    BN = ethers.BigNumber;
-    BigNumber = ethers.BigNumber;
-    FixedNumber = ethers.FixedNumber;
+    BN = function(v) { return ethers.BigNumber.from(v); }
 
     provider = ethers.getDefaultProvider();
 
