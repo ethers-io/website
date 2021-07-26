@@ -5,13 +5,13 @@
 <style type="text/css">
 	.st0{fill:#FFFFFF;}
 </style>
-<circle class="st0" cx="256" cy="256" r="104.44"/>
-<polygon class="st0" points="256,34.07 216.84,112.4 295.16,112.4 "/>
-<polygon class="st0" points="182.15,126.76 99.07,99.07 126.77,182.15 "/>
-<polygon class="st0" points="112.4,216.84 34.07,256 112.4,295.16 "/>
-<polygon class="st0" points="99.07,412.93 182.15,385.23 126.77,329.85 "/>
-<polygon class="st0" points="256,477.93 295.16,399.6 216.84,399.6 "/>
-<polygon class="st0" points="329.85,385.23 412.93,412.93 385.23,329.85 "/>
-<polygon class="st0" points="399.6,216.84 399.6,295.16 477.93,256 "/>
-<polygon class="st0" points="412.93,99.07 329.85,126.76 385.23,182.15 "/>
+<circle class="st0" cx="256" cy="256" r="113.49"/>
+<polygon class="st0" points="256,14.83 213.44,99.95 298.56,99.95 "/>
+<polygon class="st0" points="175.75,115.55 85.46,85.46 115.57,175.75 "/>
+<polygon class="st0" points="99.95,213.44 14.83,256 99.95,298.56 "/>
+<polygon class="st0" points="85.46,426.54 175.75,396.43 115.57,336.25 "/>
+<polygon class="st0" points="256,497.17 298.56,412.05 213.44,412.05 "/>
+<polygon class="st0" points="336.25,396.43 426.54,426.54 396.43,336.25 "/>
+<polygon class="st0" points="412.05,213.44 412.05,298.56 497.17,256 "/>
+<polygon class="st0" points="426.54,85.46 336.25,115.55 396.43,175.75 "/>
 </svg>

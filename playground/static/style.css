@@ -95,6 +95,7 @@ body.darkMode #banner {
 }
 
 #banner #button-darkmode {
+  opacity: 0.7;
   position: absolute;
   right: 140px;
   top: 20px;
@@ -110,7 +111,7 @@ body.darkMode #banner {
   width: 100%;
 
   opacity: 0;
-  transition: opacity 0.3s linear 0.15s;
+  transition: opacity 0.1s linear 0.15s;
 }
 
 #banner #button-darkmode .light {
