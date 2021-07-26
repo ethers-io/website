@@ -63,6 +63,8 @@ function addHistory(code) {
 
   if (code === "%reset") {
     historyCode = [ ];
+    localStorage.removeItem("is-darkMode");
+    localStorage.removeItem("is-showOptions");
   }
 
   localStorage.setItem("history", JSON.stringify(historyCode));
@@ -288,11 +290,21 @@ input.onkeyup = function(e) {
     return el;
   }
 
+  let lastGroup = null;
   const optionsItems = document.getElementById("options-items");
   Help.forEach((help) => {
 
     const div = create("div");
     optionsItems.appendChild(div);
+
+    if (help.group) {
+      lastGroup = help;
+      const divHeader = create("div", help.group, "group");
+      div.appendChild(divHeader);
+      return;
+    }
+
+    const group = lastGroup;
 
     const divItem = create("div", null, "item");
     div.appendChild(divItem);
@@ -316,30 +328,30 @@ input.onkeyup = function(e) {
 
     divInfo.appendChild(create("div", help.description, "description"));
 
-    if (help.params && help.params.length) {
-      help.params.forEach((name, index) => {
-        const divParam = create("div", null, "param");
-        const divName = create("div", name.match(/^%?(.*)$/)[1], "name");
-        if (name[0] === "%") {
-          divName.appendChild(create("i", " (optional)"));
-          if (help.defaults != null) {
-            const defaultValue = help.defaults[index];
-            if (defaultValue[0] === "$") {
-              params.push(defaultValue.substring(1));
-            } else {
-              params.push(JSON.stringify(defaultValue));
-            }
-          }
-        } else {
-          params.push(`%${ name }`);
-        }
-        divParam.appendChild(divName);
-        divParam.appendChild(create("div", help.descriptions[index], "description"));
+    if (help.returns) {
+      divInfo.appendChild(create("div", help.returns, "returns"));
+    }
 
-        divInfo.appendChild(divParam);
-      });
+    if (help.params != null) {
+      if (help.params.length) {
+        help.params.forEach((name, index) => {
+          const divParam = create("div", null, "param");
+          const divName = create("div", name.match(/^%?(.*)$/)[1], "name");
+          if (name[0] === "%") {
+            divName.appendChild(create("i", " (optional)"));
+          } else {
+            params.push(`%${ name }`);
+          }
+          divParam.appendChild(divName);
+          divParam.appendChild(create("div", help.descriptions[index], "description"));
+
+          divInfo.appendChild(divParam);
+        });
+      } else {
+        divInfo.appendChild(create("div", "no parameters", "no-params"));
+      }
     } else {
-      divInfo.appendChild(create("div", "no parameters", "no-params"));
+      //divInfo.appendChild(create("div", "", "no-params"));
     }
 
     // Set up the animation methods for clicking help items
@@ -359,7 +371,8 @@ input.onkeyup = function(e) {
           }
         } else {
           el.classList.remove("selected");
-          el.querySelector(".info").style.maxHeight = "0px";
+          const info = el.querySelector(".info");
+          if (info) { info.style.maxHeight = "0px"; }
         }
       });
 
@@ -367,7 +380,20 @@ input.onkeyup = function(e) {
     };
 
     spanUse.onclick = function() {
-      insertValue(`${ help.name }(${ params.join(", ") })`, true);
+      let insert = help.insert;
+      if (insert == null) {
+        insert = params.join(", ");
+        if (help.params != null) { insert = `(${ insert })`; }
+        insert = help.name + insert;
+      }
+      if (group && group.insert) {
+        if (insert.substring(0, 4) === "new ") {
+          insert = `new ${ group.insert }.${ insert.substring(4) }`;
+        } else {
+          insert = `${ group.insert }.${ insert }`;
+        }
+      }
+      insertValue(insert, true);
     };
 
     div.appendChild(divInfo);
@@ -376,20 +402,60 @@ input.onkeyup = function(e) {
   const search = document.getElementById("search");
   search.oninput = () => {
     const query = search.value.trim().toLowerCase();
+    const groups = [ ];
     Array.prototype.forEach.call(optionsItems.children, (child, index) => {
-      if (query === "" || Help[index].name.toLowerCase().indexOf(query) >= 0) {
+      if (Help[index].group != null) {
+        groups.push({ count: 0, child });
+      } else if (query === "" || Help[index].name.toLowerCase().indexOf(query) >= 0) {
         child.style.display = "block";
+        groups[groups.length - 1].count++;
       } else {
         child.style.display = "none";
       }
     });
+
+    groups.forEach(({ child, count }) => {
+      child.style.display = (count == 0) ? "none": "block";
+    });
   };
 })();
 
+function setState(state, on) {
+
+  // Bootstrap; load from storage or fallback onto defaults
+  if (on == null) {
+      const storedOn = localStorage.getItem(`is-${ state }`);
+      if (storedOn == null) {
+        // Get the defaults from the HTML
+        on = document.body.classList.contains(state)
+      } else {
+        // Use the stored state
+        on = (storedOn === "true");
+      }
+  }
+
+  if (on) {
+    document.body.classList.add(state);
+    localStorage.setItem(`is-${ state }`, "true");
+  } else {
+    document.body.classList.remove(state);
+    localStorage.setItem(`is-${ state }`, "false");
+  }
+}
+
 document.getElementById("button-options").onclick = function() {
-  document.body.classList[ document.body.classList.contains("showOptions") ? "remove": "add"]("showOptions");
+  setState("showOptions", !document.body.classList.contains("showOptions"));
 };
 
 document.getElementById("button-darkmode").onclick = function() {
-  document.body.classList[ document.body.classList.contains("darkMode") ? "remove": "add"]("darkMode");
+  setState("darkMode", !document.body.classList.contains("darkMode"));
 };
+
+// Set the initial state
+setState("showOptions");
+setState("darkMode");
+
+output.onclick = function() { input.focus(); }
+
+// Enable animations
+setTimeout(() => { document.body.classList.remove("disableAnimations"); }, 0);

@@ -1,6 +1,7 @@
 html {
   margin: 0;
 }
+
 body {
   margin: 0;
   transition: background-color 0.2s linear;
@@ -9,9 +10,16 @@ body.darkMode {
   background: #111;
   color: #fff;
 }
-div {
-  box-sizing: border-box;
-}
+
+/* We initialize all animations off until JavaScript
+   has had a chance to set thigns up */
+
+body.disableAnimations   { transition: none !important; }
+body.disableAnimations * { transition: none !important; }
+
+div { box-sizing: border-box; }
+
+/* Animated classes for showing options */
 
 .left {
   transition: width 0.3s ease-out;
@@ -21,18 +29,18 @@ div {
 .right {
   bottom: 0;
   position: fixed;
-  right: -370px;
+  right: -400px;
   top: 0;
   transition: transform 0.3s ease-out;
-  width: 370px;
+  width: 400px;
 }
 
 body.showOptions .left {
-  width: calc(100% - 370px);
+  width: calc(100% - 400px);
 }
 
 body.showOptions .right {
-  transform: TranslateX(-370px);
+  transform: TranslateX(-400px);
 }
 
 /* Some browsers update transform faster than position, so this
@@ -47,11 +55,12 @@ body.showOptions .right {
 }
 
 body.darkMode #banner-background {
-  ddd-background-color: #161f5d;
+  background-color: #182268;
 }
 
 #banner {
   background-color: #2535a0;
+  border-bottom: 2px solid #121a4d;
   color: #fff;
   height: 70px;
   overflow: hidden;
@@ -62,9 +71,9 @@ body.darkMode #banner-background {
 }
 
 body.darkMode #banner {
-  background-color: #000;
-  border-bottom: 1px solid #aaa;
-  color: #3b54ff;
+  background-color: #182268;
+  border-bottom: 1px solid #2c40c0;
+  ddd-color: #3b54ff;
 }
 
 #banner .logo {
@@ -223,6 +232,7 @@ textarea {
   outline: none;
   overflow: hidden;
   padding: 4px 30px 4px;
+  resize: none;
   width: 100%;
 }
 body.darkMode textarea {
@@ -273,12 +283,19 @@ body.darkMode textarea {
 #options-items {
   height: calc(100% - 145px);
   overflow: auto;
-  padding: 15px 0 50px;
+  padding: 0px 0 50px;
   position: relative;
 }
 #options-items > div {
   padding: 4px 20px;
   transition: background-color 0.3s linear, opacity 0.3s linear;
+}
+
+#options-items > div .group {
+  color: #888;
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 10px 0px 0px;
 }
 
 /* Highlight only the selected options item; if any */
@@ -296,10 +313,10 @@ body.darkMode textarea {
 
 /* Add expanded arrows to the options items */
 #options-items div .title:before {
-  content: "\25b6\00a0";
+  content: "\00a0\00a0\25b6\00a0";
 }
 #options-items > div.selected .title:before {
-  content: "\25bc\00a0";
+  content: "\00a0\00a0\25bc\00a0";
 }
 
 /* Options item title */
@@ -322,6 +339,7 @@ body.darkMode textarea {
 }
 #options-items div .item .use {
   color: #88f;
+  font-size: 16px;
   position: absolute;
   cursor: pointer;
   right: 0px;
@@ -365,6 +383,14 @@ body.darkMode textarea {
   font-size: 16px;
   padding: 15px 30px 15px 0;
   text-align: center;
+}
+#options-items div .info > .returns:before {
+  content: "\21aa\00a0";
+}
+#options-items div .info > .returns {
+  color: #4a4;
+  font-size: 16px;
+  padding-top: 4px;
 }
 #options-items div .info .param {
   margin: 5px 0;
