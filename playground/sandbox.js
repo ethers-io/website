@@ -58,6 +58,25 @@ importScripts("./inspect.js");
       return `[BigNumber: "${ this.toString() }"]`;
     };
 
+    const tempFixed = ethers.FixedNumber.from("1.0");
+    tempFixed.format.constructor.prototype[inspect.custom] = function() {
+      return new inspect.NamedObject(this.constructor.name, {
+        name: this.name,
+        signed: this.signed,
+        decimals: this.decimals,
+        width: this.width
+      });
+      //return `[FixedFormat: ${ JSON.stringify(this.name) }]`;
+    }
+
+    ethers.FixedNumber.prototype[inspect.custom] = function() {
+      return new inspect.NamedObject(this.constructor.name, {
+        format: this.format,
+        value: this.toString()
+      });
+      //return `[FixedNumber: { format: "${ this.format.name }", value: ${ JSON.stringify(this.toString()) } }]`;
+    };
+
     ethers.Wordlist.prototype[inspect.custom] = function() {
       return `[Wordlist: ${ this.locale }]`;
     };
@@ -117,7 +136,7 @@ importScripts("./inspect.js");
         url: this.connection.url,
         applicationId: (this.isCommunityResource() ? "default": this.projectId),
         applicationSecretKey: this.applicationSecretKey,
-        loadBalancer: this.loadBalancer        
+        loadBalancer: this.loadBalancer
       });
     };
 
@@ -160,6 +179,13 @@ Object.defineProperty(self, "onmessage", {
   enumerable: true,
   writable: false,
   value: onmessage
+});
+
+Object.defineProperty(self, "window", {
+  configurable: false,
+  enumerable: true,
+  writable: false,
+  value: self
 });
 
 postMessage("ready");
