@@ -19,16 +19,6 @@ const Help = [
     group: "ethers"
   },
   {
-    name: "BigNumber",
-    description: "creates a new BigNumber",
-    returns: "BigNumber",
-    params: [ "value" ],
-    descriptions: [
-      "the value of the BigNumber as any compatible type"
-    ],
-    insert: "new BigNumber(%value)"
-  },
-  {
     name: "BigNumber.from",
     description: "creates a new BigNumber",
     returns: "BigNumber",
@@ -62,7 +52,7 @@ const Help = [
     insert: "new ContractFactory(%abi, %bytecode, %signer)"
   },
   {
-    name: "FixedNumber",
+    name: "FixedNumber.from",
     description: "creates a new FixedNumber for decimal maths",
     returns: "FixedNumber",
     params: [ "value", "%format" ],
@@ -70,7 +60,7 @@ const Help = [
       "the value as any compatible type",
       "the internal format to enforce (default: fixed128x18)"
     ],
-    insert: 'new FixedNumber(%value, "fixed128x80")'
+    insert: 'FixedNumber.from(%value, "fixed128x18")'
   },
   {
     name: "getDefaultProvider",
@@ -398,6 +388,17 @@ const Help = [
     ]
   },
   {
+    name: "computeHmac",
+    description: "compute the HMAC of a bytes-like",
+    returns: "Uint8Array",
+    params: [ "algorithm", "key", "data" ],
+    descriptions: [
+      "the SHA2 algoritm to use",
+      "the HMAC key to process with",
+      "the data to process"
+    ]
+  },
+  {
     name: "computePublicKey",
     description: "compute the public key of a public or private key",
     returns: "string<Bytes>",
@@ -417,9 +418,41 @@ const Help = [
     ]
   },
   {
+    name: "ConstructorFragment.from",
+    description: "creates a new Constructor Fragment",
+    returns: "ConstructorFragment",
+    params: [ "description" ],
+    descriptions: [
+      "the human-readable or JSON ABI"
+    ]
+  },
+  {
+    name: "defaultAbiCoder",
+    description: "the default ABI coder",
+    returns: "AbiCoder"
+  },
+  {
     name: "defaultPath",
     description: "the default BIP-44 path for Ethereum",
     returns: "string"
+  },
+  {
+    name: "ErrorFragment.from",
+    description: "creates a new Error Fragment",
+    returns: "ErrorFragment",
+    params: [ "description" ],
+    descriptions: [
+      "the human-readable or JSON ABI"
+    ]
+  },
+  {
+    name: "EventFragment.from",
+    description: "creates a new Event Fragment",
+    returns: "EventFragment",
+    params: [ "description" ],
+    descriptions: [
+      "the human-readable or JSON ABI"
+    ]
   },
   {
     name: "fetchJson",
@@ -442,6 +475,36 @@ const Help = [
     ]
   },
   {
+    name: "Fragment.from",
+    description: "creates a new Fragment",
+    returns: "Fragment",
+    params: [ "description" ],
+    example: 'Fragment.from("function foo(string bar) view returns (uint256)")',
+    descriptions: [
+      "the human-readable or JSON ABI"
+    ]
+  },
+  {
+    name: "FormatTypes.full",
+    description: "constant for formatting Fragments as a human-readable ABI",
+    returns: "string",
+  },
+  {
+    name: "FormatTypes.minimal",
+    description: "constant for formatting Fragments as a human-readable ABI with minimal details",
+    returns: "string",
+  },
+  {
+    name: "FormatTypes.json",
+    description: "constant for formatting Fragments as a JSON string",
+    returns: "string",
+  },
+  {
+    name: "FormatTypes.sighash",
+    description: "constant for formatting Fragments as a normalized string to compute selectors",
+    returns: "string",
+  },
+  {
     name: "formatEther",
     description: "formats a value as an ether decimal string.",
     returns: "string",
@@ -460,6 +523,15 @@ const Help = [
       "the number of decimal places"
     ],
     insert: "formatUnits(%value, 18)"
+  },
+  {
+    name: "FunctionFragment.from",
+    description: "creates a new Function Fragment",
+    returns: "FunctionFragment",
+    params: [ "description" ],
+    descriptions: [
+      "the human-readable or JSON ABI"
+    ]
   },
   {
     name: "getAccountPath",
@@ -695,6 +767,15 @@ const Help = [
     ]
   },
   {
+    name: "ParamType.from",
+    description: "creates a new ParamType",
+    returns: "ParamType",
+    params: [ "description" ],
+    descriptions: [
+      "the human-readable or JSON ABI"
+    ]
+  },
+  {
     name: "parseBytes32String",
     description: "parses a Bytes32 string into a normal string.",
     returns: "string",
@@ -795,15 +876,6 @@ const Help = [
     ]
   },
   {
-    name: "sha256",
-    description: "compute the SHA2-256 hash of a bytes-like.",
-    returns: "string<Bytes32>",
-    params: [ "bytesLike" ],
-    descriptions: [
-      "the bytes-like to hash"
-    ]
-  },
-  {
     name: "serializeTransaction",
     description: "serialize a transaction.",
     returns: "string<Bytes>",
@@ -811,6 +883,15 @@ const Help = [
     descriptions: [
       "the transaction properties",
       "the transaction signature; if omitted an unsigned transaction pre-image is returned"
+    ]
+  },
+  {
+    name: "sha256",
+    description: "compute the SHA2-256 hash of a bytes-like.",
+    returns: "string<Bytes32>",
+    params: [ "bytesLike" ],
+    descriptions: [
+      "the bytes-like to hash"
     ]
   },
   {
@@ -879,6 +960,16 @@ const Help = [
     descriptions: [
       "the bytes-like object to strip"
     ]
+  },
+  {
+    name: "SupportedAlgorithm.sha256",
+    description: "the HMAC constant for SHA2-256",
+    returns: "string",
+  },
+  {
+    name: "SupportedAlgorithm.sha512",
+    description: "the HMAC constant for SHA2-512",
+    returns: "string",
   },
   {
     name: "toUtf8Bytes",
