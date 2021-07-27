@@ -100,7 +100,8 @@ a.link:hover {
   padding: 50px 0 10px;
 }
 
-.header .description .smile {
+/*.header .description */
+.smile {
   font-color: #446;
   font-family: monospace;
   font-weight: bold;
