@@ -78,10 +78,12 @@ body.darkMode #banner {
 
 #banner .logo {
   background: url(./logo.svg) no-repeat center;
+  display: block;
   height: 70px;
-  margin-left: 30px;
+  left: 20px;
   opacity: 0.7;
   position: absolute;
+  top: 0px;
   width: 70px;
 }
 #banner .title {
@@ -92,6 +94,7 @@ body.darkMode #banner {
   padding: 0 100px;
   text-align: center;
 }
+/*
 #banner #button-options {
   background: url(./logo.svg) no-repeat center;
   height: 70px;
@@ -102,11 +105,28 @@ body.darkMode #banner {
   top: 0;
   width: 70px;
 }
+*/
+
+#button-options {
+  height: 30px;
+  right: 30px;
+  opacity: 0.7;
+  position: absolute;
+  top: 20px;
+  width: 30px;
+}
+
+#button-options .open {
+  background: url(./options-open.svg) no-repeat center;
+  background-size: contain;
+  height: 100%;
+  width: 100%;
+}
 
 #banner #button-darkmode {
   opacity: 0.7;
   position: absolute;
-  right: 140px;
+  right: 90px;
   top: 20px;
   width: 30px;
   height: 30px;
@@ -247,9 +267,9 @@ body.darkMode textarea {
 }
 
 #options .shadow-clip {
-  top: 0px;
+  top: 70px;
   left: 0;
-  height: 100%;
+  height: calc(100% - 70px);
   overflow: hidden;
   position: absolute;
   width: 50px;
@@ -267,6 +287,7 @@ body.darkMode textarea {
   line-height: 70px;
   text-align: center;
 }
+
 #options .search {
   padding: 15px 20px 30px;
   position: relative;

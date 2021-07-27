@@ -186,18 +186,22 @@ input.onkeydown = function(e) {
     if (value[0] === "%") {
       switch (value.trim().split(/\s+/g)[0]) {
         case "%reset":
-          addOutput("result-bold", "PLAYGROUND: Reset history");
+          addOutput("result-bold", "PLAYGROUND: Reset settings and history");
           break;
         case "%help":
           addOutput("result-bold", "PLAYGROUND: HELP");
           addOutput("result", "Commands");
           addOutput("result", "  %help            This help screen");
           addOutput("result", "  %reset           Clear command history");
-          addOutput("result", "");
+          //addOutput("result", " ");
           addOutput("result", "Keys");
           addOutput("result", "  up/down          Cycle through command history");
           addOutput("result", "  tab/shift-tab    Cycle between %vars");
-          addOutput("result", "");
+          //addOutput("result", " ");
+          addOutput("result", "Magic Variables");
+          addOutput("result", "  _                Last evaluated response");
+          addOutput("result", "  _p               Last promise result (if _ is a Promise)");
+          //addOutput("result", " ");
           addOutput("result", "Cavets");
           addOutput("result", "  - avoid `const` and `let` as each eval is scoped");
           addOutput("result", "    so the variable will not be available afterward");
