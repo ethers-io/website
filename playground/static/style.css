@@ -43,10 +43,9 @@ body.showOptions .right {
   transform: TranslateX(-400px);
 }
 
-/* Some browsers update transform faster than position, so this
-   prevents tearing when hiding the options */
 #banner-background {
   background-color: #2535a0;
+  border-bottom: 2px solid #121a4d;
   height: 70px;  
   left: 0;
   position: fixed;
@@ -56,11 +55,10 @@ body.showOptions .right {
 
 body.darkMode #banner-background {
   background-color: #182268;
+  border-bottom: 1px solid #2c40c0;
 }
 
 #banner {
-  background-color: #2535a0;
-  border-bottom: 2px solid #121a4d;
   color: #fff;
   height: 70px;
   overflow: hidden;
@@ -71,8 +69,6 @@ body.darkMode #banner-background {
 }
 
 body.darkMode #banner {
-  background-color: #182268;
-  border-bottom: 1px solid #2c40c0;
   ddd-color: #3b54ff;
 }
 
