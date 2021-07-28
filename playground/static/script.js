@@ -186,13 +186,21 @@ input.onkeydown = function(e) {
     if (value[0] === "%") {
       switch (value.trim().split(/\s+/g)[0]) {
         case "%reset":
+          // Happens in the add history
           addOutput("result-bold", "PLAYGROUND: Reset settings and history");
+          break;
+        case "%clear":
+          Array.prototype.forEach.call(output.querySelectorAll("div"), (el) => {
+            el.remove();
+          });
+          addOutput("result-bold", "PLAYGROUND: Clear output buffer");
           break;
         case "%help":
           addOutput("result-bold", "PLAYGROUND: HELP");
           addOutput("result", "Commands");
           addOutput("result", "  %help            This help screen");
           addOutput("result", "  %reset           Clear command history");
+          addOutput("result", "  %clear           Clear output buffer");
           //addOutput("result", " ");
           addOutput("result", "Keys");
           addOutput("result", "  up/down          Cycle through command history");
