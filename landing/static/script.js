@@ -1,33 +1,56 @@
 
 // Creates a timer that doesn't tick while the screen is not visible.
-// Returns an opaque value that can be passed to clearForegroundTimer.
-function setForegroundTimeout(callback, duration) {
+// If sync, the event synchronizes with the most recent timer with the
+// same duration.
+const foregroundTimers = { };
+function setForegroundTimeout(callback, duration, sync) {
   if (duration == null) { duration = 0; }
 
-  if (typeof(document.hidden) !== "boolean") { return setTimeout(callback, duration); }
+  // Browser doesn't support visibility API
+  if (typeof(document.hidden) !== "boolean") {
+    setTimeout(callback, duration);
+    return;
+  }
+
+  // If synchronized, reuse the same callback bucket
+  let timers = [ callback ];
+  if (sync) {
+    if (foregroundTimers[duration] == null) {
+      foregroundTimers[duration] = timers;
+    } else {
+      timers = foregroundTimers[duration];
+      timers.push(callback);
+      return;
+    }
+  }
 
   const TICK = 250;
 
+  // Short timeouts can just behave as normal
   if (duration < TICK) { return setTimeout(callback, duration); }
 
   let elapsed = 0;
   const timer = setInterval(() => {
+    // Document is not visible (browser in the background, different tab, etc.)
     if (document.hidden) { return; }
 
+    // Move 1 tick forward (break if it's time)
     elapsed += TICK;
     if (elapsed < duration) { return; }
 
+    // Stop coalescing timers into this bucket
+    delete foregroundTimers[duration];
+
+    // Done with this timer
     clearInterval(timer);
-    callback();
+
+    // Execure each callback (in the next event loop)
+    timers.forEach((c) => { setTimeout(() => { c(); }, 0); });
   }, TICK);
 
-  return { _fgTimer: true, timer };
+  return; // { _fgTimer: true, timer };
 }
 
-function clearForegroundTimeout(id) {
-  if (id && id._fgTimer === true) { return clearInterval(id); }
-  return clearTimeout(id);
-}
 
 // Returns an array of random backers, weigted by total donations
 const getBackers = (function() {
@@ -91,7 +114,6 @@ const runZipper = function(container, items, count) {
       //console.log(container.lastChild, container.lastChild.style.transform);
       x = parseInt(container.lastChild.getAttribute("data-x")) + 100;
     }
-    console.log(x);
 
     bucket.style.transform = `TranslateX(${ x }%)`;
     bucket.setAttribute("data-x", x);
@@ -163,10 +185,10 @@ const runZipper = function(container, items, count) {
     // Add the next backer
     const el = add(nextItem(true), true);
     setTimeout(() => {
-      setForegroundTimeout(runOnce, 4000);
+      setForegroundTimeout(runOnce, 4000, true);
     }, 0);
   }
-  setForegroundTimeout(runOnce, 4000);
+  setForegroundTimeout(runOnce, 4000, true);
 }
 
 runZipper(document.getElementById("backers"), getBackers(120).map((name) => ({
