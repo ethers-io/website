@@ -459,7 +459,7 @@ document.getElementById("button-darkmode").onclick = function() {
 setState("showOptions");
 setState("darkMode");
 
-output.onclick = function() { input.focus(); }
+//output.onclick = function() { input.focus(); }
 
 // Enable animations
 setTimeout(() => { document.body.classList.remove("disableAnimations"); }, 0);
