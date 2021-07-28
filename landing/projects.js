@@ -86,6 +86,11 @@ const Projects = [{
   url: "",
   score: 0
 },{
+  image: "unlock-protocol_unlock.png",
+  name: "Unlock",
+  url: "https://github.com/unlock-protocol/unlock/",
+  score: 434
+},{
   image: "wighawag_mandalas.png",
   name: "Mandalas",
   url: "https://github.com/wighawag/mandalas",
