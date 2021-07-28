@@ -98,6 +98,7 @@ const Help = [
     name: "Wallet.createRandom",
     description: "creates an new random Wallet.",
     returns: "Wallet",
+    params: [ ]
   },
   {
     name: "Wallet.fromMnemonic",
@@ -432,9 +433,39 @@ const Help = [
     returns: "AbiCoder"
   },
   {
+    name: "defaultAbiCoder.decode",
+    description: "decode ABI encoded data",
+    returns: "Result",
+    params: [ "types", "data" ],
+    descriptions: [
+      "the array of types",
+      "the encoded data"
+    ]
+  },
+  {
+    name: "defaultAbiCoder.encode",
+    description: "encode objects as ABI data",
+    returns: "string<Bytes>",
+    params: [ "types", "value" ],
+    descriptions: [
+      "the array of types",
+      "the value to encode"
+    ]
+  },
+  {
     name: "defaultPath",
     description: "the default BIP-44 path for Ethereum",
     returns: "string"
+  },
+  {
+    name: "entropyToMnemonic",
+    description: "converts BIP-39 entropy to its mnemonic",
+    returns: "string",
+    params: [ "entropy", "%wordlist" ],
+    descriptions: [
+      "the BIP-39 entropy",
+      "the wordlist to use"
+    ]
   },
   {
     name: "ErrorFragment.from",
@@ -731,6 +762,16 @@ const Help = [
     ]
   },
   {
+    name: "isValidMnemonic",
+    description: "determines if a string is a valid BIP-39 mnemonic",
+    returns: "boolean",
+    params: [ "text", "%wordlist" ],
+    descriptions: [
+      "the string to check",
+      "the wordlist to use"
+    ]
+  },
+  {
     name: "isValidName",
     description: "returns true if name is a valid ENS name",
     returns: "boolean",
@@ -755,6 +796,26 @@ const Help = [
     params: [ "bytesLike" ],
     descriptions: [
       "the bytes-like to hash"
+    ]
+  },
+  {
+    name: "mnemonicToEntropy",
+    description: "convert a BIP-39 mnemonic to its entropy",
+    returns: "string",
+    params: [ "mnemonic", "%wordlist" ],
+    descriptions: [
+      "the BIP-39 mnemonic phrase",
+      "the wordlist to use"
+    ]
+  },
+  {
+    name: "mnemonicToSeed",
+    description: "compute the BIP-39 seed from a mnemonic",
+    returns: "string<Bytes>",
+    params: [ "mnemonic", "%password" ],
+    descriptions: [
+      "the BIP-39 mnemonic phrase",
+      'the password to use (default: "")'
     ]
   },
   {
