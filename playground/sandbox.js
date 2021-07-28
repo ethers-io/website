@@ -1,15 +1,70 @@
 importScripts("https://cdn.ethers.io/lib/ethers-5.4.umd.min.js");
 importScripts("./inspect.js");
 
-// Hijack the logging a bit, so we can show logs in our REPL
-(function() {
+let _ = undefined;
+let _p = undefined;
+
+const { _getSigners, ethereum, _onMessage } = (function() {
+    class Eip1193PassThrough {
+      constructor() { }
+
+      request(method, params) {
+        console.log(method, params);
+        return new Promise((resolve, reject) => {
+          reject(new Error("not implemented yet; coming soon"));
+        });
+      }
+
+      on() {
+        throw new Error("not implemented yet; coming soon");
+      }
+    }
+
+    function _getSigners() {
+      return [ ];
+    }
+
+    function _onMessage(e) {
+      const data = JSON.parse(e.data);
+
+      let result = null;
+      try {
+        result = eval(data);
+      } catch (error) {
+        postMessage({ action: "sync-error", message: error.message, error: inspect(error) });
+        return;
+      }
+
+      _ = result;
+      _p = undefined;
+
+      if (result instanceof Promise) {
+        postMessage({ action: "async-running" });
+        result.then((result) => {
+          _p = result;
+          postMessage({ action: "async-result", result: inspect(result) });
+        }, (error) => {
+          _p = error;
+          postMessage({ action: "async-error", message: error.message, error: inspect(error) });
+        });
+      } else {
+        postMessage({ action: "sync-result", result: inspect(result) });
+      }
+    }
+
+    function S(v) { return JSON.stringify(v); }
+
+    const ethereum = new Eip1193PassThrough();
+
+    // Set up the console
     ["log", "warn", "error"].forEach((logger) => {
-        const log = console[logger].bind(console);
-        console[logger] = function(...args) {
-            log(...args);
-            postMessage({ action: "log", logger, args: args.map(inspect) });
-       };
+      const log = console[logger].bind(console);
+      console[logger] = function(...args) {
+        log(...args);
+        postMessage({ action: "log", logger, args: args.map(inspect) });
+      };
     });
+
     const globals = [ "getGlobals" ];
     for (const key in self) { globals.push(key); }
 
@@ -22,6 +77,7 @@ importScripts("./inspect.js");
       return result;
     }
 
+    // Expose basic ethers library components
     version = ethers.version;
 
     BigNumber = ethers.BigNumber;
@@ -54,10 +110,13 @@ importScripts("./inspect.js");
         self[util] = ethers.utils[util];
     });
 
+    // Pretty Format some common ethers classes
+
     ethers.BigNumber.prototype[inspect.custom] = function() {
-      return `[BigNumber: "${ this.toString() }"]`;
+      return `BigNumber { value: ${ S(this.toString()) } }`;
     };
 
+    /*
     const tempFixed = ethers.FixedNumber.from("1.0");
     tempFixed.format.constructor.prototype[inspect.custom] = function() {
       return new inspect.NamedObject(this.constructor.name, {
@@ -66,28 +125,24 @@ importScripts("./inspect.js");
         decimals: this.decimals,
         width: this.width
       });
-      //return `[FixedFormat: ${ JSON.stringify(this.name) }]`;
     }
+    */
 
     ethers.FixedNumber.prototype[inspect.custom] = function() {
-      return new inspect.NamedObject(this.constructor.name, {
-        format: this.format,
-        value: this.toString()
-      });
-      //return `[FixedNumber: { format: "${ this.format.name }", value: ${ JSON.stringify(this.toString()) } }]`;
+      return `FixedNumber { format: ${ S(this.format.name) }, value: ${ S(this.toString()) } }`;
     };
 
     ethers.Wordlist.prototype[inspect.custom] = function() {
-      return `[Wordlist: ${ this.locale }]`;
+      return `Wordlist { locale: ${ S(this.locale) } }`;
     };
 
     Uint8Array.prototype[inspect.custom] = function() {
-      return `[Uint8Array: { ${ Array.prototype.map.call(this, (i) => String(i)).join(", ") } } ]`;
+      return `Uint8Array { ${ Array.prototype.map.call(this, (i) => String(i)).join(", ") } }`;
     };
 
-    provider.formatter.constructor.prototype[inspect.custom] = function() {
-      return `[Formatter: { }]`;
-    };
+    //provider.formatter.constructor.prototype[inspect.custom] = function() {
+    //  return `Formatter: { }]`;
+    //};
 
     ethers.providers.AlchemyProvider.prototype[inspect.custom] = function() {
       return new inspect.NamedObject(this.constructor.name, {
@@ -140,52 +195,34 @@ importScripts("./inspect.js");
       });
     };
 
+    return {
+      _getSigners, ethereum, _onMessage
+    };
+
 })();
 
-let _ = undefined;
-let _p = undefined;
-
-onmessage = function(e) {
-  const data = JSON.parse(e.data);
-
-  let result = null;
-  try {
-    result = eval(data);
-  } catch (error) {
-    postMessage({ action: "sync-error", message: error.message, error: inspect(error) });
-    return;
-  }
-
-  _ = result;
-
-  if (result instanceof Promise) {
-    _p = undefined;
-    postMessage({ action: "async-running" });
-    result.then((result) => {
-      _p = result;
-      postMessage({ action: "async-result", result: inspect(result) });
-    }, (error) => {
-      _p = error;
-      postMessage({ action: "async-error", message: error.message, error: inspect(error) });
-    });
-  } else {
-    _p = undefined;
-    postMessage({ action: "sync-result", result: inspect(result) });
-  }
-}
-
+// Set the message handler
+onmessage = _onMessage
 Object.defineProperty(self, "onmessage", {
   configurable: false,
   enumerable: true,
   writable: false,
-  value: onmessage
+  value: _onMessage
 });
 
+// Set up an alias to self as window
 Object.defineProperty(self, "window", {
   configurable: false,
   enumerable: true,
   writable: false,
   value: self
+});
+
+// Set up an alias to self as window
+Object.defineProperty(self, "signers", {
+  configurable: false,
+  enumerable: true,
+  get: _getSigners
 });
 
 postMessage("ready");
