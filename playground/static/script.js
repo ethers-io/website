@@ -1,77 +1,354 @@
 const input = document.getElementById("input");
+const inputBox = document.getElementById("input-box");
 const output = document.getElementById("output");
 
-let historyCursor = null;
-let historyCode = [ ];
-try {
-  historyCode = JSON.parse(localStorage.getItem("history")) || [ ];
-  if (!Array.isArray(historyCode) || historyCode.filter((c) => (typeof(c) !== "string")).length) {
-    historyCode = [ ];
+// History Management
+const codeHistory = (function() {
+
+  // All history elements
+  let historyCode = [ ];
+
+  // Current offset into history while scanning
+  let historyCursor = null;
+
+  // Load any existing history
+  try {
+    historyCode = JSON.parse(localStorage.getItem("history")) || [ ];
+    if (!Array.isArray(historyCode) || historyCode.filter((c) => (typeof(c) !== "string")).length) {
+      historyCode = [ ];
+    }
+  } catch (error) { console.log("JJ", error); }
+
+  function append(code) {
+    historyCursor = null;
+    if (code !== historyCode[historyCode.length - 1]) {
+      historyCode.push(code);
+    }
+    localStorage.setItem("history", JSON.stringify(historyCode));
   }
-} catch (error) { console.log("JJ", error); }
+
+  function clear() {
+    historyCursor = null;
+    historyCode = [ ];
+    localStorage.removeItem("history");
+  }
+
+  function get(direction) {
+    if (direction == -1) {
+      if (historyCursor == null) {
+        historyCursor = historyCode.length - 1;
+      } else {
+        historyCursor--;
+      }
+      if (historyCursor < 0) { historyCursor = 0; }
+      if (historyCursor < historyCode.length) {
+        return historyCode[historyCursor];
+      }
+      return null;
+    }
+
+    if (historyCursor != null) {
+      historyCursor++;
+      if (historyCursor < historyCode.length) {
+        return historyCode[historyCursor];
+      }
+      historyCursor = null
+      return "";
+    }
+
+  }
+
+  return { append, clear, get }
+})();
+
+// Worker Management
+const { send } = (function () {
+
+  let ready = false;
+  const worker = new Worker("sandbox.js");
+
+  let nextId = 1;
+  const resolveMap = { };
+
+  function send(action, params) {
+    const id = nextId++;
+    console.log(">>>", { action, id, params });
+    worker.postMessage(JSON.stringify({ action, id, params }));
+
+    return new Promise((resolve) => { resolveMap[String(id)] = resolve; });
+  }
+
+  function handleAction(action, id, params) {
+  }
+
+  function handleNotice(notice, params) {
+    if (notice === "internal") {
+      console.log("INTERNAL LOG:", data);
+
+    } else if (notice === "log") {
+      const content = params.args.map((c) => ((c === undefined) ? "undefined": c.toString())).join(", ");
+      addOutput("log-" + params.logger, content);
+
+    } else if (notice === "async-running") {
+      // @TODO: Track with params.id
+      addOutput("pending", "pending");
+    }
+  }
+
+  worker.onmessage = async function(e) {
+    const data = JSON.parse(e.data);
+    console.log("<<<", data);
+
+    if (!ready && data === "ready") {
+      addOutput("entry", "version");
+      await evaluate("version");
+      addOutput("entry", "provider.network.name");
+      await evaluate("provider.network.name");
+      ready = true;
+      input.focus();
+
+    } else if (data.result) {
+      const resolve = resolveMap[String(data.id)];
+      if (resolve) {
+        delete resolveMap[String(data.id)];
+        resolve(data.result);
+      } else {
+        console.log(`result for ${ id } with no resolver`);
+      }
+
+    } else if (data.action) {
+      handleAction(data.action, data.id, data.params || { });
+
+    } else if (data.notice) {
+      handleNotice(data.notice, data.params || { });
+    }
+  }
+
+  return { send };
+})();
+
+// Auto-completion checker
+const { getQuery } = (function() {
+  function repeat(c, length) {
+    if (c.length === 0) { throw new RangeError("too short"); }
+    while (c.length < length) { c += c; }
+    return c.substring(0, length);
+  }
+
+  const openers = { "}": "{", ")": "(", "]": "[" };
+  const closers = { "{": "}", "(": ")", "[": "]" };
+
+  class ParsedResult {
+    constructor(code, offset) {
+      if (offset == null) { offset = code.length; }
+
+      this.code = code;
+      this.offset = offset;
+
+      // Compute the processed code, which has the same offsets as code,
+      // but with nuisances removed, which can break simple parsing
+
+      // Nix long comments
+      code = code.replace(/(\/\*.*?\*\/)/gm, (all) => {
+        return repeat(" ", all.length);
+      });
+      code = code.replace(/(\/\/(.*$|.*\n))/mg, (all, comment) => repeat(" ", comment.length));
+
+      // Replace string contents with whitespace
+      const quoteReplacer = (all, contents) => ('"' + repeat(" ", contents.length) + '"');
+      code = code.replace(/'(([^'\\]|\\.)*)'/g, quoteReplacer);
+      code = code.replace(/"(([^"\\]|\\.)*)"/g, quoteReplacer);
+      code = code.replace(/`(([^`\\]|\\.)*)`/g, quoteReplacer);
+
+      // @TODO: regex
+
+      this.processedCode = code;
+
+      this.brackets = { };
+
+      let brackets = [ ];
+      while (offset > 0) {
+        offset--;
+
+        const chr = code[offset];
+
+        if (openers[chr]) {
+          brackets.push({ offset, chr });
+
+        } else if (closers[chr]) {
+          if (brackets.length === 0) {
+            console.log("start of internal expression");
+            offset++;
+            break;
+          }
+
+          const bracket = brackets.pop();
+          if (closers[chr] !== bracket.chr) {
+            console.log("mismatch");
+            offset++;
+            break;
+          }
+          this.brackets[String(bracket.offset)] = offset;
+          this.brackets[String(offset)] = bracket.offset;
+
+        } else if (brackets.length === 0) {
+          // Not a valid identifier character at the root
+          if (!chr.match(/^\s|\.|[a-z0-9_$]$/i)) {
+            offset++;
+            break;
+          }
+        }
+      }
+
+      this.working = code.substring(offset, this.offset);
+
+      this.comps = [ "" ];
+      for (let i = offset; i < this.offset; i++) {
+        const chr = code[i];
+
+        if (chr.match(/^([a-z0-9_$]|\s)$/i)) {
+          this.comps[this.comps.length - 1] += chr;
+        } else if (chr === "(" /* fix: ) */) {
+          this.comps[this.comps.length - 1] += "()";
+          i = this.matchingBracket(i);
+          if (i == null) { throw new Error("no matching"); }
+        } else if (chr === ".") {
+          this.comps.push("");
+        } else {
+          throw new Error("hmmm...");
+        }
+      }
+
+      this.comps = this.comps.reduce((accum, comp, index) => {
+        //comp = comp.trim();
+        const comps = comp.split(/\s+/);
+        if (index === 0 && (comps.length === 2 && comps[0] === "new")) {
+          comps.push("%new");
+          comp = comps[1];
+        } else if (comp === "" && index < this.comps.length - 1) {
+          throw new Error("double-dot");
+        } else if (comps.length !== 1) {
+          throw new Error("bad whitespace");
+        }
+        accum.push(comp);
+        return accum;
+      }, [ ]);
+    }
+
+    matchingBracket(offset) {
+      offset = String(offset);
+      if (this.brackets[offset]) {
+        return this.brackets[offset];
+      }
+    }
+  }
+
+  function getQuery(code, offset) {
+    try {
+      const result = new ParsedResult(code, offset);
+      if (result.comps) {
+        const path = result.comps.join(".");
+        result.comps.pop();
+        const prefixPath = result.comps.join(".");
+        return { path, prefixPath };
+      }
+    } catch (error) {
+      console.log("EE", error);
+    }
+    return { path: null, prefixPath: null };
+  }
+
+  return { getQuery };
+})();
 
 function addOutput(type, content) {
   const div = document.createElement("div");
+  div.classList.add("output");
   div.classList.add(type);
   div.innerText = content;
-  output.insertBefore(div, input);
+  output.insertBefore(div, inputBox);
   window.scrollTo(0, document.body.scrollHeight);
-  /*
-  window.scrollTo({
-    top: document.body.scrollHeight,
-    left: 0,
-    behavior: 'smooth'
-  });
-  */
 }
 
-let ready = false;
-const worker = new Worker("sandbox.js");
-worker.onmessage = function(e) {
-  const data = e.data;
-  console.log("<<<", data);
-  if (!ready && data === "ready") {
-    ready = true;
-    input.focus();
-    addOutput("entry", "version");
-    evaluate("version");
-    //addOutput("entry", "provider.network.name");
-    //evaluate("provider.network.name");
-  } else {
-    if (data.action === "log") {
-      const content = data.args.map((c) => ((c === undefined) ? "undefined": c.toString())).join(", ");
-      addOutput("log-" + data.logger, content);
-    } else if (data.action === "async-running") {
-      addOutput("pending", "pending");
-    } else if (data.action === "sync-result") {
-      addOutput("result", data.result);
-    } else if (data.action === "async-result") {
-      addOutput("result", data.result);
-    } else if (data.action === "sync-error") {
-      addOutput("error", data.message);
-    } else if (data.action === "async-error") {
-      addOutput("error", data.message);
+const suggestions = (function() {
+  const suggestions = document.getElementById("suggestions");
+
+  const fontSize = (function() {
+    const div = document.getElementById("sizer");
+    return parseInt(div.clientWidth / div.textContent.length);
+  })();
+
+  function set(options, width) {
+    let x = 30 + width * fontSize;
+    if (x > output.clientWidth - 270) { x = output.clientWidth - 270; }
+
+    suggestions.style.transform = `translate(${ x }px, -100%)`;
+
+    // Find the reference node for insertBefore
+    function findReference(value) {
+      const els = Array.prototype.slice.call(suggestions.childNodes);
+      for (let i = 0; i < els.length; i++) {
+        const el = els[i];
+        if (value <= el.innerText.toLowerCase()) { return el; }
+      }
+      return null;
+    }
+
+    // Delete any that no longer matter
+    const add = options.reduce((accum, option) => (accum[option] = true, accum), { });
+    Array.prototype.slice.call(suggestions.childNodes).forEach((child) => {
+      const content = child.innerText;
+      if (add[content]) {
+        delete add[content];
+      } else {
+        child.remove();
+      }
+    });
+
+    // Insert suggestions, sorted (inefficient O(n^2), but fine for small values)
+    Object.keys(add).forEach((option) => {
+      const ref = findReference(option.toLowerCase());
+      const div = document.createElement("div");
+      div.textContent = option;
+      suggestions.insertBefore(div, ref);
+    });
+  }
+
+  function up() {
+    const current = suggestions.querySelector(".selected");
+    if (current == null) {
+      if (suggestions.children.length) {
+        suggestions.lastChild.classList.add("selected");
+      }
+    } else if (current.previousSibling) {
+      current.previousSibling.classList.add("selected");
+      current.classList.remove("selected");
     }
   }
-}
 
-function addHistory(code) {
-  historyCursor = null;
-  if (code !== historyCode[historyCode.length - 1]) {
-    historyCode.push(code);
+  function down() {
+    const current = suggestions.querySelector(".selected");
+    if (current != null) {
+      if (current != suggestions.lastChild) {
+        current.nextSibling.classList.add("selected");
+      }
+      current.classList.remove("selected");
+    }
   }
 
-  if (code === "%reset") {
-    historyCode = [ ];
-    localStorage.removeItem("is-darkMode");
-    localStorage.removeItem("is-showOptions");
+  function current() {
+    const current = suggestions.querySelector(".selected");
+    if (current == null) { return null; }
+    return current.textContent;
   }
 
-  localStorage.setItem("history", JSON.stringify(historyCode));
-}
+  return { set, up, down, current };
+})();
 
 function evaluate(code) {
-  worker.postMessage(JSON.stringify(code));
+  return send("eval", { code }).then((result) => {
+    addOutput(result.type, result.value);
+  });
 }
 
 function grow() {
@@ -79,8 +356,6 @@ function grow() {
     input.style.height = input.scrollHeight + "px";
   }
 }
-
-const req = [ ];
 
 function getAssist(text, direction, start, end) {
   const percents = [ ];
@@ -121,7 +396,10 @@ function getAssist(text, direction, start, end) {
   return null;
 }
 
-function insertValue(value) {
+let wasHighlit = false;
+function insertValue(value, highlight) {
+  wasHighlit = highlight;
+
   let curValue = input.value;
   let curStart = input.selectionStart, curEnd = input.selectionEnd;
 
@@ -132,10 +410,15 @@ function insertValue(value) {
   let selStart = curStart + value.length;
   let selEnd = selStart;
 
-  const assist = getAssist(value, 1, 0, 0);
-  if (assist) {
-    selStart = curStart + assist.start;
-    selEnd = curStart + assist.end;
+  if (highlight) {
+    selStart = curStart;
+    selfEnd = curStart + value.length;
+  } else {
+    const assist = getAssist(value, 1, 0, 0);
+    if (assist) {
+      selStart = curStart + assist.start;
+      selEnd = curStart + assist.end;
+    }
   }
 
   setTimeout(() => {
@@ -171,82 +454,42 @@ function setValue(value, assist) {
 
 input.onkeydown = function(e) {
   const meta = (e.altKey || e.ctrlKey || e.shiftKey);
+  /*
+  console.log("EEEE", e);
+  if (e.key === "Backspace" && wasHighlit) {
+    // [backspace]; 
+    let curStart = input.selectionStart, curEnd = input.selectionEnd;
+
+  const start = value.length, end = value.length;
+
+    input.value = curValue.substring(0, curStart) + value + curValue.substring(curEnd);
+  }
+  */
+
+  wasHighlit = false;
 
   if (e.keyCode === 13 && !meta) {
     // [enter]; evaluate
-
-    let value = input.value;
-    input.style.height = null;
-    if (value.trim()) {
-      addHistory(value);
-    } else {
-      value = " ";
-    }
-    addOutput("entry", value);
-    if (value[0] === "%") {
-      switch (value.trim().split(/\s+/g)[0]) {
-        case "%reset":
-          // Happens in the add history
-          addOutput("result-bold", "PLAYGROUND: Reset settings and history");
-          break;
-        case "%clear":
-          Array.prototype.forEach.call(output.querySelectorAll("div"), (el) => {
-            el.remove();
-          });
-          addOutput("result-bold", "PLAYGROUND: Clear output buffer");
-          break;
-        case "%help":
-          addOutput("result-bold", "PLAYGROUND: HELP");
-          addOutput("result", "Commands");
-          addOutput("result", "  %help            This help screen");
-          addOutput("result", "  %reset           Clear command history");
-          addOutput("result", "  %clear           Clear output buffer");
-          //addOutput("result", " ");
-          addOutput("result", "Keys");
-          addOutput("result", "  up/down          Cycle through command history");
-          addOutput("result", "  tab/shift-tab    Cycle between %vars");
-          //addOutput("result", " ");
-          addOutput("result", "Magic Variables");
-          addOutput("result", "  _                Last evaluated response");
-          addOutput("result", "  _p               Last promise result (if _ is a Promise)");
-          //addOutput("result", " ");
-          addOutput("result", "Cavets");
-          addOutput("result", "  - avoid `const` and `let` as each eval is scoped");
-          addOutput("result", "    so the variable will not be available afterward");
-          break;
-        default:
-          addOutput("error", `PLAYGROUND: unknown command ${ JSON.stringify(value) } (try "%help")`);
-      }
-    } else {
-      evaluate(value);
-    }
-    setValue("");
+    e.preventDefault();
+    e.stopPropagation();
 
   } else if (e.keyCode === 38 && !meta) {
     // [up]; use previous history entry
 
-    if (historyCursor == null) {
-      historyCursor = historyCode.length - 1;
-    } else {
-      historyCursor--;
-    }
-    if (historyCursor < 0) { historyCursor = 0; }
-    if (historyCursor < historyCode.length) {
-      setValue(historyCode[historyCursor]);
-    }
+    const code = codeHistory.get(-1);
+    if (code != null) { setValue(code); }
+//    suggestions.up(e);
+//    e.preventDefault();
+//    e.stopPropagation();
 
   } else if (e.keyCode === 40 && !meta) {
     // [down]; use next history entry
 
-    if (historyCursor != null) {
-      historyCursor++;
-      if (historyCursor < historyCode.length) {
-        setValue(historyCode[historyCursor]);
-      } else {
-        historyCursor = null
-        setValue("");
-      }
-    }
+    const code = codeHistory.get(1);
+    if (code != null) { setValue(code); }
+//    suggestions.down(e);
+//    e.preventDefault();
+//    e.stopPropagation();
 
   } else if (e.keyCode === 9 && !(e.altKey || e.ctrlKey)) {
     // [tab] / [shift-tab]; switch between %args
@@ -274,9 +517,125 @@ function bounce(direction, e) {
   return false;
 }
 
+function runCommand(command, args) {
+  switch (command) {
+    case "reset":
+      codeHistory.clear();
+      localStorage.removeItem("is-darkMode");
+      localStorage.removeItem("is-showOptions");
+      addOutput("result-bold", "PLAYGROUND: Reset settings and history");
+      break;
+    case "clear":
+      Array.prototype.forEach.call(output.querySelectorAll("div.output"), (el) => {
+        el.remove();
+      });
+      addOutput("result-bold", "PLAYGROUND: Clear output buffer");
+      break;
+    case "help":
+      addOutput("result-bold", "PLAYGROUND: HELP");
+        addOutput("result", "Commands");
+        addOutput("result", "  %help            This help screen");
+        addOutput("result", "  %reset           Clear command history");
+        addOutput("result", "  %clear           Clear output buffer");
+        //addOutput("result", " ");
+        addOutput("result", "Keys");
+        addOutput("result", "  up/down          Cycle through command history");
+        addOutput("result", "  tab/shift-tab    Cycle between %vars");
+        //addOutput("result", " ");
+        addOutput("result", "Magic Variables");
+        addOutput("result", "  _                Last evaluated response");
+        addOutput("result", "  _p               Last promise result (if _ is a Promise)");
+        //addOutput("result", " ");
+        addOutput("result", "Cavets");
+        addOutput("result", "  - avoid `const` and `let` as each eval is scoped");
+        addOutput("result", "    so the variable will not be available afterward");
+        break;
+      default:
+        addOutput("error", `PLAYGROUND: unknown command ${ JSON.stringify(value) } (try "%help")`);
+  }
+}
+
+let lastInput = null, lastPrefixPath = null;
+let suppressAutoComplete = false;
 input.onkeyup = function(e) {
+
   if (e.keyCode === 13 && !(e.altKey || e.ctrlKey || e.shiftKey)) {
+
+    const current = suggestions.current();
+    if (current) {
+      insertValue(current);
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      return false;
+    }
+
+    let value = input.value;
+    input.style.height = null;
+    if (value.trim()) {
+      codeHistory.append(value);
+    } else {
+      value = " ";
+    }
+    addOutput("entry", value);
+    if (value[0] === "%") {
+      const command = value.trim().split(/\s+/g)[0];
+      runCommand(command.substring(1), value.trim().substring(command.length).trim());
+    } else {
+      evaluate(value);
+    }
     setValue("");
+
+  } else {
+    const start = input.selectionStart, end = input.selectionEnd;
+    const value = input.value;
+    if (start === end) {
+      console.log(input.value);
+      const { path, prefixPath } = getQuery(value, start);
+      /*
+      console.log("PP", path, pathPrefix);
+      if (prefixPath !== lastPrefixPath) {
+        supressAutoComplete = false;
+        lastPrefixPath = prefixPath;
+      }
+      */
+      lastInput = input.value;
+
+      if (path && !suppressAutoComplete) {
+        return;
+        send("inspect", { path }).then((result) => {
+          console.log("RES", result);
+
+          suggestions.set(result.possible, input.value.length);
+
+          // @TODO: check start/end
+          console.log(input.value, lastInput, input.value !== lastInput);
+          if (input.value !== lastInput) { return; }
+
+          if (result.possible.length === 0) { return; }
+
+          let prefix = "";
+          for (let i = 0; i < result.possible[0].length; i++) {
+            let letter = result.possible[0][i];
+            for (let w = 1; w < result.possible.length; w++) {
+              if (result.possible[w][i] !== letter) {
+                letter = null;
+                break;
+              }
+            }
+            if (letter == null) { break; }
+            prefix += letter;
+          }
+
+          //if (prefix) {
+          //  insertValue(prefix.substring(result.prefix.length), true);
+          //}
+        });
+      }
+    } else {
+      suggestions.set([], 0);
+    }
   }
 };
 
@@ -405,7 +764,7 @@ input.onkeyup = function(e) {
           insert = `${ group.insert }.${ insert }`;
         }
       }
-      insertValue(insert, true);
+      insertValue(insert);
     };
 
     div.appendChild(divInfo);

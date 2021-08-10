@@ -4,12 +4,13 @@ importScripts("./inspect.js");
 let _ = undefined;
 let _p = undefined;
 
-const { _getSigners, ethereum, _onMessage } = (function() {
+const { _onMessage, ethereum } = (function() {
     class Eip1193PassThrough {
       constructor() { }
 
       request(method, params) {
         console.log(method, params);
+        //return send("provider", { method, params });
         return new Promise((resolve, reject) => {
           reject(new Error("not implemented yet; coming soon"));
         });
@@ -20,48 +21,204 @@ const { _getSigners, ethereum, _onMessage } = (function() {
       }
     }
 
+    function getInspect(value) {
+      if (value == null) { return null };
+
+      for (const name in ethers.providers) {
+        const klass = ethers.providers[name];
+        if (klass === value) {
+          return { type: "Class", name };
+        }
+      }
+
+      for (const name in ethers.providers) {
+        const klass = ethers.providers[name];
+        if (klass && klass === value.constructor) { return { type: name }; }
+      }
+
+      if (ethers.BigNumber.isBigNumber(value)) {
+        return { type: "BigNumber" };
+      }
+
+      if (Array.isArray(value)) {
+        return { type: "array", length: value.length };
+      }
+
+      if (typeof(value) === "object") {
+        return { type: "object", keys: Object.keys(value) };
+      }
+
+      return typeof(value);
+    }
+
     function _getSigners() {
       return [ ];
     }
 
-    function _onMessage(e) {
-      const data = JSON.parse(e.data);
+    function S(v) { return JSON.stringify(v); }
+    function post(v) { postMessage(S(v)); }
 
-      let result = null;
-      try {
-        result = eval(data);
-      } catch (error) {
-        postMessage({ action: "sync-error", message: error.message, error: inspect(error) });
-        return;
-      }
-
-      _ = result;
-      _p = undefined;
-
-      if (result instanceof Promise) {
-        postMessage({ action: "async-running" });
-        result.then((result) => {
-          _p = result;
-          postMessage({ action: "async-result", result: inspect(result) });
-        }, (error) => {
-          _p = error;
-          postMessage({ action: "async-error", message: error.message, error: inspect(error) });
-        });
-      } else {
-        postMessage({ action: "sync-result", result: inspect(result) });
-      }
+    function internal(error) {
+      post({ notice: "internal", params: { error: inspect(error) }});
     }
 
-    function S(v) { return JSON.stringify(v); }
+    let nextId = 1;
+    const resolveMap = { };
+    function send(action, params) {
+      const id = nextId++;
+      post({ action, id, params });
+      return new Promise((resolve) => { resolveMap[String(id)] = resolve; });
+    }
+
+    function handleAction(action, id, params) {
+      function reply(result) { post({ id, result }); }
+
+      if (action === "eval") {
+
+        let result = null;
+        try {
+          result = eval(params.code);
+        } catch (error) {
+          return reply({ sync: "sync", type: "error", value: JSON.stringify(error.message), error: inspect(error) });
+        }
+
+        _ = result;
+        _p = undefined;
+
+        if (result instanceof Promise) {
+          post({ notice: "async-running", id: id });
+          result.then((result) => {
+            _p = result;
+            reply({ sync: "async", type: "result", value: inspect(result) });
+          }, (error) => {
+            _p = error;
+            reply({ sync: "async", type: "error", value: JSON.stringify(error.message), error: inspect(error) });
+          });
+        } else {
+          reply({ sync: "sync", type: "result", value: inspect(result) });
+        }
+/*
+      } else if (data.action === "inspect") {
+        const action = "inspect";
+        const path = data.path.split(".");
+        //console.log("Search", path);
+
+        let result = null;
+        let possible = { };
+        let prefix = null;
+        let likely = null;
+
+        let searchNew = false;
+        let current = self;
+        while (current != null && path.length) {
+          let comp = path.shift();
+
+          if (comp === "%new") {
+            searchNew = true;
+            continue;
+          }
+
+          if (current === self && (comp === "self" || comp === "window")) { continue; }
+
+          if (path.length === 0) {
+              prefix = comp;
+              possible = Object.keys(current);
+              if (prefix) {
+                possible = possible.filter((k) => (k.substring(0, prefix.length) === prefix));
+              }
+              break;
+          }
+
+          const propDescr = Object.getOwnPropertyDescriptor(current, comp);
+          //console.log(propDescr);
+          / *
+          if (propDescr) {
+            if (propDescr.get) {
+              console.log("do not execute getters");
+              break;
+            }
+          }
+          * /
+          current = current[comp];
+        }
+        //console.log(possible);
+
+        reply({ action, id, result, likely, possible, prefix });
+*/
+      }
+
+    }
+
+    function handleNotice(notice, params) {
+    }
+
+    function _onMessage(e) {
+      const data = JSON.parse(e.data);
+      const id = data.id;
+
+      if (data.result) {
+        const resolve = resolveMap[String(id)];
+
+        if (resolve) {
+          delete resolveMap[String(id)];
+          resolve(data.result);
+        } else {
+          console.log(`result for ${ id } with no resolver`);
+        }
+
+      } else if (data.notice) {
+        handleNotice(data.notice, data.params || { });
+
+      } else if (data.action) {
+        handleAction(data.action, id, data.params || { });
+      }
+/*
+        const comps = expression.split(".");
+        console.log(comps);
+
+        let current = self;
+        let possible = { };
+        let likely = null;
+        while (comps.length) {
+          const comp = comps.shift();
+          if (current === self && comp === "self") { continue; }
+
+          if (comps.length === 0) {
+            for (const key in current) {
+              if (key.substring(0, comp.length) === comp) {
+                possible[key] = getInspect(current[key]);
+                if (comp === key) { likely = key; }
+              }
+            }
+            console.log("POSSY", possible, likely);
+          }
+
+          const desc = Object.getOwnPropertyDescriptor(comp, current);
+          if (desc) {
+            current = current[comp];
+          } else if (comp in current) {
+            current = current[comp];
+          } else {
+            current = undefined;
+          }
+        }
+        //console.log(current);
+
+        const result = null;
+      }
+      */
+    }
+
 
     const ethereum = new Eip1193PassThrough();
 
     // Set up the console
     ["log", "warn", "error"].forEach((logger) => {
+      const notice = "log";
       const log = console[logger].bind(console);
       console[logger] = function(...args) {
         log(...args);
-        postMessage({ action: "log", logger, args: args.map(inspect) });
+        post({ notice: "log", params: { logger, args: args.map(inspect) } });
       };
     });
 
@@ -140,8 +297,8 @@ const { _getSigners, ethereum, _onMessage } = (function() {
       return `Uint8Array { ${ Array.prototype.map.call(this, (i) => String(i)).join(", ") } }`;
     };
 
-    //provider.formatter.constructor.prototype[inspect.custom] = function() {
-    //  return `Formatter: { }]`;
+    //ethers.providers.Formatter.prototype[inspect.custom] = function() {
+    //  return `Formatter: { }`;
     //};
 
     ethers.providers.AlchemyProvider.prototype[inspect.custom] = function() {
@@ -195,9 +352,17 @@ const { _getSigners, ethereum, _onMessage } = (function() {
       });
     };
 
+    // Set up an alias to self as window
+    Object.defineProperty(self, "signers", {
+      configurable: false,
+      enumerable: true,
+      get: _getSigners
+    });
+
     return {
-      _getSigners, ethereum, _onMessage
+      _onMessage, ethereum
     };
+
 
 })();
 
@@ -219,10 +384,19 @@ Object.defineProperty(self, "window", {
 });
 
 // Set up an alias to self as window
-Object.defineProperty(self, "signers", {
+Object.defineProperty(self, "self", {
   configurable: false,
   enumerable: true,
-  get: _getSigners
+  writable: false,
+  value: self
 });
 
-postMessage("ready");
+// Set up self.ethereum (also window.ethereum)
+Object.defineProperty(self, "ethereum", {
+  configurable: false,
+  enumerable: true,
+  writable: false,
+  value: ethereum
+});
+
+postMessage(JSON.stringify("ready"));
