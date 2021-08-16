@@ -19,7 +19,7 @@ body.disableAnimations * { transition: none !important; }
 
 div { box-sizing: border-box; }
 
-/* Animated classes for showing options */
+/* Animated classes for showing the sidebar */
 
 .left {
   transition: width 0.3s ease-out;
@@ -35,11 +35,11 @@ div { box-sizing: border-box; }
   width: 400px;
 }
 
-body.showOptions .left {
+body.showSidebar .left {
   width: calc(100% - 400px);
 }
 
-body.showOptions .right {
+body.showSidebar .right {
   transform: TranslateX(-400px);
 }
 
@@ -91,7 +91,7 @@ body.darkMode #banner {
   text-align: center;
 }
 /*
-#banner #button-options {
+#banner #button-sidebar {
   background: url(./logo.svg) no-repeat center;
   height: 70px;
   margin-right: 30px;
@@ -103,7 +103,7 @@ body.darkMode #banner {
 }
 */
 
-#button-options {
+#button-sidebar {
   height: 30px;
   right: 30px;
   opacity: 0.7;
@@ -112,7 +112,7 @@ body.darkMode #banner {
   width: 30px;
 }
 
-#button-options .open {
+#button-sidebar .open {
   background: url(./options-open.svg) no-repeat center;
   background-size: contain;
   height: 100%;
@@ -182,63 +182,68 @@ body.darkMode #banner #button-darkmode .dark {
   min-height: 100%;
   overflow: auto;
 }
-#output div {
+#output div.output {
   font-size: 24px;
   font-family: monospace;
   padding: 4px 30px 4px;
   white-space: pre;
   width: 100%;
 }
-#output div.log-warn {
+#output div.output.log-warn {
   color: #880;
 }
-body.darMode #output div.log-warn {
+body.darMode #output div.output.log-warn {
   color: #aa6;
 }
-#output div.log-error {
+#output div.output.log-error {
   color: 800;
 }
-body.darkMode #output div.log-error {
+body.darkMode #output div.output.log-error {
   color: a66;
 }
-#output div.log-log {
+#output div.output.log-log {
   color: #008;
 }
-body.darkMode #output div.log-log {
+body.darkMode #output div.output.log-log {
   color: #66a;
 }
-#output div.entry {
+#output div.output.entry {
   background: url(./caret.svg) no-repeat 8px 12px;
   background-size: 17px 17px;
   color: #888;
 }
-body.darkMode #output div.entry {
+body.darkMode #output div.output.entry {
   color: #aaa;
 }
-#output div.result {
+#output div.output.result {
   color: #00f;
 }
-#output div.result-bold {
+#output div.output.result-bold {
   color: #00f;
   font-weight: bold;
 }
-body.darkMode #output div.result {
+body.darkMode #output div.output.result {
   color: #88f;
 }
-body.darkMode #output div.result-bold {
+body.darkMode #output div.output.result-bold {
   color: #88f;
   font-weight: bold;
 }
-#output div.pending {
+#output div.output.pending {
   color: #aaa;
   font-style: italic;
 }
-#output div.error {
+#output div.output.error {
   color: #f00;
 }
-body.darkMode #output div.error {
+body.darkMode #output div.output.error {
   color: #f88;
 }
+
+#input-box {
+  position: relative;
+}
+
 textarea {
   background: url(./caret.svg) no-repeat 8px 12px;
   background-size: 17px 17px;
@@ -251,18 +256,79 @@ textarea {
   resize: none;
   width: 100%;
 }
+
+/* off-screen box to approximate width of monospace font used in the textarea */
+#sizer {
+  position: absolute;
+  font-size: 24px;
+  font-family: monospace;
+  left: 0;
+  transform: translateX(-200%);
+}
+
+
 body.darkMode textarea {
   color: #eee;
 }
 
-#options {
+#suggestions {
+  background: #fff;
+  border: 1px solid #66f;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  color: #008;
+  font-family: monospace;
+  font-size: 20px;
+  opacity: 0.9;
+  position: absolute;
+  top: 0px;
+  transform: translateY(-100%);
+  ddd-transition: opacity 0.3s linear;
+  width: 270px;
+}
+
+body.darkMode #suggestions {
+  background: #222;
+  border: 1px solid #888;
+  box-shadow: 0 0 15px #000;
+  color: #888;
+}
+
+body.hideSuggestions #suggestions {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#suggestions > div {
+  border-bottom: 1px solid #66f;
+  padding: 4px 10px;
+}
+
+body.darkMode #suggestions > div {
+  border-bottom: 1px solid #888;
+}
+
+#suggestions > div.selected {
+  background: #66f;
+  color: #fff;
+}
+
+body.darkMode #suggestions > div.selected {
+  background: #555;
+  color: #fff;
+}
+
+#suggestions > div:last-child {
+  border-bottom: none;
+}
+
+#sidebar {
   background: #333;
   color: #fff;
   font-family: monospace;
   font-size: 18px;
 }
 
-#options .shadow-clip {
+#sidebar .shadow-clip {
   top: 70px;
   left: 0;
   height: calc(100% - 70px);
@@ -271,24 +337,24 @@ body.darkMode textarea {
   width: 50px;
 }
 
-#options .shadow {
+#sidebar .shadow {
   box-shadow: -10px 0px 18px 18px #000;
   position: absolute;
   height: 100%;
   width: 0;
 }
-#options .header {
+#sidebar .header {
   background: #111;
   height: 70px;
   line-height: 70px;
   text-align: center;
 }
 
-#options .search {
+#sidebar .search {
   padding: 15px 20px 30px;
   position: relative;
 }
-#options .search input {
+#sidebar .search input {
   border-radius: 10px;
   font-size: 20px;
   height: 30px;
@@ -297,18 +363,18 @@ body.darkMode textarea {
   text-align: center;
   width: 100%;
 }
-#options-items {
+#sidebar-items {
   height: calc(100% - 145px);
   overflow: auto;
   padding: 0px 0 50px;
   position: relative;
 }
-#options-items > div {
+#sidebar-items > div {
   padding: 4px 20px;
   transition: background-color 0.3s linear, opacity 0.3s linear;
 }
 
-#options-items > div .group {
+#sidebar-items > div .group {
   color: #888;
   font-size: 14px;
   white-space: nowrap;
@@ -317,81 +383,81 @@ body.darkMode textarea {
 
 /* Highlight only the selected options item; if any */
 /*
-#options-items.selected > div .title {
+#sidebar-items.selected > div .title {
   opacity: 0.5;
 }
-#options-items.selected > div.selected .title {
+#sidebar-items.selected > div.selected .title {
   opacity: 1;
 }
 */
-#options-items > div.selected {
+#sidebar-items > div.selected {
   background: rgba(0, 0, 0, 0.8);
 }
 
 /* Add expanded arrows to the options items */
-#options-items div .title:before {
+#sidebar-items div .title:before {
   content: "\00a0\00a0\25b6\00a0";
 }
-#options-items > div.selected .title:before {
+#sidebar-items > div.selected .title:before {
   content: "\00a0\00a0\25bc\00a0";
 }
 
 /* Options item title */
-#options-items div .title {
+#sidebar-items div .title {
   color: #ddd;
   cursor: pointer;
   white-space: nowrap;
 }
-#options-items div .title .prefix {
+#sidebar-items div .title .prefix {
   color: #888;
   cursor: pointer;
   font-size: 14px;
   white-space: nowrap;
 }
-#options-items div.selected .title {
+#sidebar-items div.selected .title {
   font-weight: bold;
 }
-#options-items div .item {
+#sidebar-items div .item {
   position: relative;
 }
-#options-items div .item .use {
+#sidebar-items div .item .use {
   color: #88f;
   font-size: 16px;
   position: absolute;
   cursor: pointer;
   right: 0px;
 }
-#options-items div .item .use:hover {
+#sidebar-items div .item .use:hover {
   color: #8f8;
 }
 
 /* Info Blob */
-#options-items div .info .usage {
+#sidebar-items div .info .usage {
   display: none; /* Maybe don't need this?? */
 }
-#options-items div .info {
+#sidebar-items div .info {
   color: #ddd;
   overflow: auto;
   padding-left: 23px;
   max-height: 0;
   transition: max-height 0.3s ease-out;
 }
-#options-items div.selected .info {
+#sidebar-items div.selected .info {
   color: #ddd;
   padding-right: 7px;
 }
 /*
-#options-items div .info .usage {
+#sidebar-items div .info .usage {
   margin-bottom: 5px;
   white-space: nowrap;
 }
 */
-#options-items div .info > .description {
+#sidebar-items div .info > .description {
   color: #aaa;
   font-size: 16px;
   padding-top: 4px;
 }
-#options-items div .info .no-params {
+#sidebar-items div .info .no-params {
   margin-bottom: 5px;
   line-height: 20px;
   font-style: italic;
@@ -401,28 +467,28 @@ body.darkMode textarea {
   padding: 15px 30px 15px 0;
   text-align: center;
 }
-#options-items div .info > .returns:before {
+#sidebar-items div .info > .returns:before {
   content: "\21aa\00a0";
 }
-#options-items div .info > .returns {
+#sidebar-items div .info > .returns {
   color: #4a4;
   font-size: 16px;
   padding-top: 4px;
 }
-#options-items div .info .param {
+#sidebar-items div .info .param {
   margin: 5px 0;
 }
-#options-items div .info .param .name {
+#sidebar-items div .info .param .name {
   font-weight: bold;
 }
-#options-items div .info .param .name i {
+#sidebar-items div .info .param .name i {
   color: #aaa;
   font-size: 12px;
   font-weight: normal;
   position: relative;
   top: -4px;
 }
-#options-items div .info .param .description {
+#sidebar-items div .info .param .description {
   color: #aaa;
   font-family: sans-serif;
   font-size: 16px;

@@ -11,7 +11,7 @@
 
     <link href="/static/style.css" rel="stylesheet">
   </head>
-  <body class="showOptions disableAnimations">
+  <body class="showSidebar disableAnimations hideSuggestions">
     <div id="banner-background"></div>
     <div id="banner" class="left">
       <div class="title">ethers playground</div>
@@ -21,18 +21,22 @@
         <div class="dark"></div>
         <div class="light"></div>
       </div>
-      <div id="button-options">
+      <div id="button-sidebar">
         <div class="open"></div>
       </div>
     </div>
     <div id="output" class="left">
-      <textarea id="input" spellcheck="false"></textarea>
+      <div id="input-box">
+        <div id="sizer">Hello World</div>
+        <div id="suggestions"></div>
+        <textarea id="input" autocorrect="false" autocapitalize="false" spellcheck="false"></textarea>
+      </div>
     </div>
-    <div id="options" class="right">
+    <div id="sidebar" class="right">
       <div class="shadow-clip"><div class="shadow"></div></div>
       <div class="header">LIBRARY</div>
       <div class="search"><input id="search" placeholder="search..."></div>
-      <div id="options-items"></div>
+      <div id="sidebar-items"></div>
     </div>
     <script type="text/javascript" src="https://cdn.ethers.io/lib/ethers-5.4.umd.min.js"></script>
     <script type="text/javascript" src="/static/help.js"></script>
