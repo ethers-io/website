@@ -21,6 +21,11 @@ const Projects = [{
   url: "https://github.com/rkalis/allbastards.com",
   score: 7
 },{
+  image: "alphawallet_.jpg",
+  name: "AlphaWallet",
+  url: "https://github.com/AlphaWallet/",
+  score: 204
+},{
   image: "bokkypoobah_BestBastardGANPunks.png",
   name: "BestBastardGANPunks",
   url: "https://github.com/bokkypoobah/BestBastardGANPunks",
@@ -42,7 +47,7 @@ const Projects = [{
   score: 507
 },{
   image: "mycryptohq_mycrypto.png",
-  name: "MyCrpyto",
+  name: "MyCrypto",
   url: "https://github.com/MyCryptoHQ/MyCrypto",
   score: 968
 },{
