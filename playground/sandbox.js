@@ -17,7 +17,7 @@ let _ = undefined;
 let _p = undefined;
 
 // Debug
-self.w = ethers.Wallet.createRandom();
+//self.w = ethers.Wallet.createRandom();
 
 const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, evalFunc) {
 
@@ -44,171 +44,165 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
     });
 
     class Follower {
+
+      // descr:
+      // - name
+      // - returns: Returns; used to determine follow
+      // - display?
+      // - params?: Array<string>
+
+      constructor(descr) {
+        if (typeof(descr) === "string") {
+          descr = { name };
+        } else {
+          descr = Object.assign({ }, descr);
+        }
+
+        descr.display = descr.insert = descr.name;
+
+        // It's a function, dress it up
+        if (descr.params) {
+          descr.display += "()";
+          descr.insert = descr.name + "(" + descr.params.reduce((accum, p) => {
+            if (p[0] !== "%") {
+              accum.push(`%${ p }`);
+            } else if (p.indexOf("=") >= 0) {
+              accum.push(p.substring(p.indexOf("=") + 1).trim());
+            }
+            return accum;
+          }, [ ]).join(", ") + ")";
+        }
+
+        // Unknown return type
+        if (!descr.returns) { descr.returns = new Returns("_"); }
+
+        this._descr = descr;
+      }
+
+      descr(options) { return this._descr; }
+
       keys() { return [ ]; }
-      descr(key) { return null; }
+
       follow() { return null; }
 
       toString() {
-        return `<${ this.constructor.name } keys=(${ this.keys().join(", ") })>`;
+        return `<${ this.constructor.name } descr="${ JSON.stringify(this.descr) }" keys=(${ this.keys().join(", ") })>`;
       }
-/*
-      static getDescr(value, options) {
-        if (options == null) { options = { }; }
 
-        if (value == null) { return null; }
-
-        if (value instanceof Returns) {
-          return value.descr();
-        }
-
-        // Basic type, like string or number
-        if (value === Uint8Array) { return { returns: "Uint8Array" }; }
-        if (Basic[value]) { return { returns: value }; }
-        if (Basic[typeof(value)]) { return { returns: typeof(value) }; }
-
-        let match = lookupClass.get(value);
-        if (match) {
-
-          // A class
-          if (match.cls) {
-            if (options.allowClass) {
-              return {
-                descr: match.description,
-                params: match.params,
-                newable: true,
-                returns: "Class"
-              };
-            }
-            //return {
-            //  descr: 
-            //};
-            //return new PropsFollower(match.name, match.properties);
-            return null;
-          }
-
-          // A function
-          if (match.func) {
-            return {
-              descr: match.descr,
-              params: match.params,
-              returns: match.returns
-            };
-          }
-
-          throw new Error("hmm...");
-        }
-
-        // An instance
-        match = lookupClass.get(value.constructor);
-        if (match) {
-          return {
-            returns: match.name
-          };
-        }
-
-        return null;
-      }
-*/
-      static from(value, options) {
-        if (options == null) { options = { }; }
+      // This will always returns a DotFollower or CallFollower?
+      static from(name, value) {
 
         if (value == null) { return null; }
 
         if (value.returns && value.returns instanceof Returns) {
+          //if (value.returns.type === "class") {
+          //  return new ClassFollower();
+          //}
+          let follower = new PropsFollower(Object.assign({ name }, value), value.returns.props());
           if (value.params) {
-            return new CallFollower(value, Follower.from(value.returns));
+            return new CallFollower(follower);
           }
-          return new PropsFollower(value, value.returns.props());
-        }
-
-        {
-          const returns = Returns.from(value);
-          if (returns) {
-            return new PropsFollower({ returns }, returns.props());
-          }
+          return new DotFollower(follower);
         }
 
         let match = lookupClass.get(value);
         if (match) {
-          // A class
-          if (match.cls) {
-            return new PropsFollower(match, match.staticProperties);
-          }
 
-          // A function
-          if (match.func) {
-            return new CallFollower(match, Follower.from(match));
-          }
+          // A class we provide
+          if (match.cls) { return new ClassFollower(match); }
+
+          // A function we provide
+          if (match.func) { return Follower.from(match.name, match); }
 
           throw new Error("hmm...");
         }
 
-        // An instance
+        // An instance of a class we provide
         match = lookupClass.get(value.constructor);
-        if (match) {
-          return new PropsFollower(match, match.properties);
+        if (match && match.cls) {
+          return new DotFollower(new PropsFollower({
+            name: match.name,
+            returns: Returns.from(match.name)
+          }, match.properties));
         }
 
-        return new ObjectFollower(value);
+        // Something else
+        return new DotFollower(new ObjectFollower(name, value));
       }
     }
 
     class StateFollower extends Follower {
-      constructor(state, follower) {
-        super();
-        this.state = state;
-        this.follower = follower;
+      constructor(descr, followers) {
+        super(descr);
+        this.followers = followers;
       }
 
-      keys() { return [ this.state ]; }
-
       follow(key) {
-        if (key !== this.state) { return null; }
-        return this.follower;
+        return this.followers[key] || null;
       }
 
       toString() {
-        return `<${ this.constructor.name } state=${ JSON.stringify(this.state) } follower=${ this.follower.toString() } keys=(${ this.keys().join(", ") })>`;
+        const followers = Object.keys(this.followers).map((key) => {
+          return `${ JSON.stringify(key) }=${ this.followers[key].toString() }`;
+        });
+        return `<${ this.constructor.name } ${ followers.join("\n   ") })>`;
       }
     }
 
     class DotFollower extends StateFollower {
-      constructor(follower) { super(".", follower); }
+      constructor(follower) { super(follower.descr(), { ".": follower }); }
     }
 
     class CallFollower extends StateFollower {
-      constructor(descr, follower) {
-        super("()", new DotFollower(follower));
-        this._descr = descr;
+      constructor(follower) {
+        super(follower.descr(), { "()": new DotFollower(follower) });
       }
-      descr() { return this._descr; }
+    }
+
+    class ClassFollower extends StateFollower {
+      constructor(help) {
+        const name = help.name;
+
+        const dotFollower = new PropsFollower({
+          name, returns: Returns.from(help.cls)
+        }, help.staticProperties);
+
+        const callFollower = new DotFollower(new PropsFollower({
+          name, params: help.params, returns: Returns.from(help.name)
+        }, help.properties));
+
+        super(dotFollower.descr(), {
+          ".": dotFollower,
+          "()": callFollower
+        });
+
+        this.help = help;
+      }
+
+      descr(options) {
+        if (options && options.newing) {
+          return this.follow("()").descr();
+        }
+        return super.descr(options);
+      }
     }
 
     class PropsFollower extends Follower {
       constructor(descr, props) {
-        super();
-        this._descr = descr;
+        super(descr);
         this._props = props;
       }
 
       keys() { return Object.keys(this._props); }
-      descr() { return this._descr; }
 
       follow(key) {
-        const prop = this._props[key];
-        const follower = Follower.from(prop);
-        if (prop.params) {
-          return new CallFollower(prop, follower);
-        } else if (prop.returns) {
-          return new DotFollower(follower);
-        }
-        throw new Error("hmmm");
+        return Follower.from(key,  Object.assign({ name: key }, this._props[key]));
       }
     }
 
     class ObjectFollower extends Follower {
-      constructor(object) {
-        super();
+      constructor(name, object) {
+        super({ name, returns: Returns.from("_") });
         this.object = Object.assign({ }, object);
       }
 
@@ -219,57 +213,33 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
       }
 
       keys() { return Object.keys(this.object); }
-      descr() { return { returns: "unknown" }; }
 
       follow(key) {
-        // Allow returning class objects from our help
-        //const follower = Follower.from(this.object[key], { allowClass: true });
-        const follower = Follower.from(this.object[key]);
-
-        // CallFollower already has a token to separate identifiers
-        if (follower instanceof CallFollower) { return follower; }
-
-        // Require a dot before the next identifier
-        return new DotFollower(follower);
+        if (!(key in this.object)) { return null; }
+        return Follower.from(key, this.object[key]);
       }
     }
 
     function findMatches(tokens) {
-      //console.log("FIND");
+    //console.log("FIND");  /// DEBUG
 
       let follower = new Follower();
       let allowed = [ "ROOT" ];
 
+      let descrOptions = { };
+
       while(follower && tokens.length) {
         const token = tokens.pop();
-        //console.log("TOKEN", token.token, token.text, follower.toString());
+        //console.log("TOKEN", token.token, token.text, follower.toString());  ///DEBUG
 
         if (token.token === "CURSOR") {
           //console.internal(token);
           const prefix = token.text;
 
           const matches = follower.keys().reduce((accum, key) => {
-            if (key === ".") { return accum; }
             if (key.substring(0, prefix.length) === prefix) {
-              const props = { name: key, display: key };
-              const descr = follower.follow(key).descr();
-              if (descr) {
-                if (descr.params) {
-                  props.display += "()";
-                  props.insert = key + "(" + descr.params.reduce((accum, p) => {
-                    if (p[0] !== "%") {
-                      accum.push(`%${ p }`);
-                    } else if (p.indexOf("=") >= 0) {
-                      accum.push(p.substring(p.indexOf("=") + 1).trim());
-                    }
-                    return accum;
-                  }, [ ]).join(", ") + ")";
-                  //const params = descr.params.filter(p => (p[0] !== "%"));
-                  //props.insert = key + "(" + params.map(p => `%${ p }`).join(", ") + ")";
-                  // @TODO: Help for assistive
-                }
-              }
-              accum.push(props);
+              const next = follower.follow(key);
+              if (next) { accum.push(next.descr(descrOptions)); }
             }
             return accum;
           }, [ ]);
@@ -278,15 +248,15 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
         }
 
         if (allowed.indexOf(token.token) === -1) {
-          console.internal("Expected:", allowed, "Got:", token);
+          //console.internal("Expected:", allowed, "Got:", token);
           follower = null;
           break;
         }
 
         switch (token.token) {
           case "ROOT":
-            allowed = [ "IDENTIFIER", "NEW" ];
-            follower = new ObjectFollower(self);
+            allowed = [ "IDENTIFIER", "NEW", "AWAIT" ];
+            follower = new ObjectFollower("self", self);
             follower.add(Globals);
             break;
 
@@ -297,6 +267,12 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
 
           case "NEW":
             allowed = [ "IDENTIFIER" ];
+            descrOptions.newing = true
+            break;
+
+          case "AWAIT":
+            allowed = [ "IDENTIFIER" ];
+            descrOptions.awaiting = true
             break;
 
           case "IDENTIFIER":
@@ -307,6 +283,8 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
           case "PAREN":
             allowed = [ "DOT" ];
             follower = follower.follow("()");
+            descrOptions.newing = false;
+            descrOptions.awaiting = false;
             break;
 
           case "BRACKET":
@@ -445,7 +423,7 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
       })
     });
 
-
+/*
     const globals = [ "getGlobals" ];
     for (const key in self) { globals.push(key); }
 
@@ -457,7 +435,7 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
       }
       return result;
     }
-
+*/
     // Expose basic ethers library components
     version = ethers.version;
 

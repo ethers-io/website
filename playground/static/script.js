@@ -93,6 +93,9 @@ const codeHistory = (function() {
   // Current offset into history while scanning
   let historyCursor = null;
 
+  // Used to restore the input that was present when scanning began
+  let initialLine = "";
+
   // Load any existing history
   try {
     historyCode = JSON.parse(localStorage.getItem("history")) || [ ];
@@ -115,10 +118,11 @@ const codeHistory = (function() {
     localStorage.removeItem("history");
   }
 
-  function get(direction) {
+  function get(direction, currentInput) {
     if (direction == -1) {
       if (historyCursor == null) {
         historyCursor = historyCode.length - 1;
+        if (historyCursor >= 0) { initialInput = currentInput; }
       } else {
         historyCursor--;
       }
@@ -135,7 +139,7 @@ const codeHistory = (function() {
         return historyCode[historyCursor];
       }
       historyCursor = null
-      return "";
+      return initialInput;
     }
 
   }
@@ -193,7 +197,7 @@ const worker = (function () {
       await evaluate("provider.network.name");
       input.focus();
 
-    } else if (data.result) {
+    } else if ("result" in data) {
       const resolve = resolveMap[String(data.id)];
       if (resolve) {
         delete resolveMap[String(data.id)];
@@ -230,14 +234,14 @@ const worker = (function () {
 // languages require quite a lot of additional support. This is meant
 // as a good enough solution, and remains relatively compact.
 
-const { getTokens } = (function() {
+const { getSafeCode, getTokens } = (function() {
   function repeat(c, length) {
     if (c.length === 0) { throw new RangeError("too short"); }
     while (c.length < length) { c += c; }
     return c.substring(0, length);
   }
 
-  const openers = { "}": "{", ")": "(", "]": "[" };
+  const openers = { /* fix: { */ "}": "{", /* fix: }( */ ")": "(", /* fix: ) [ */ "]": "[" /* fix: ] */ };
   const closers = { "{": "}", "(": ")", "[": "]" };
 
   const matchable = /* Fix: [ ( { */{ "}": "BRACE", ")": "PAREN", "]": "BRACKET" };
@@ -278,13 +282,8 @@ const { getTokens } = (function() {
   // can no longer process tokens. This allows us to auto-complete
   // mid-code, based on the most recent identifier chain.
   function getTokens(code, offset) {
-    let asyncEnabled = false;
-    if (code.substring(0, 6) === "%async") {
-      asyncEnabled = true;
-      code = repeat(" ", 6) + code.substring(6);
-    }
-
     const safeCode = getSafeCode(code);
+    const asyncEnabled = !!safeCode.match(/(^|[^a-z_$])await([^a-z0-9_$]|$)/i);
 
     const precog = safeCode.substring(offset).match(/[a-z0-9_$]*/i)[0];
     const tokens = [ { token: "CURSOR", offset, caret: offset, width: 0, text: "", precog } ];
@@ -427,7 +426,7 @@ const { getTokens } = (function() {
     }, [ ]);;
   }
 
-  return { getTokens };
+  return { getSafeCode, getTokens };
 })();
 
 // @TODO: Bundle these up into an IIFE for UI
@@ -436,7 +435,7 @@ function addOutput(type, content) {
   const div = document.createElement("div");
   div.classList.add("output");
   div.classList.add(type);
-  div.innerText = content;
+  div.textContent = content;
   output.insertBefore(div, inputBox);
   window.scrollTo(0, document.body.scrollHeight);
 }
@@ -451,8 +450,6 @@ const suggestions = (function() {
     const div = document.getElementById("sizer");
     return parseInt(div.clientWidth / div.textContent.length);
   })();
-
-//  let restore = null;
 
   function set(options) {
     if (options == null) { options = [ ]; }
@@ -482,7 +479,7 @@ const suggestions = (function() {
     // Delete any that no longer matter
     const add = options.reduce((accum, option) => (accum[option.name] = option, accum), { });
     Array.prototype.slice.call(suggestions.childNodes).forEach((child) => {
-      const content = child.innerText;
+      const content = child.textContent;
       if (add[content]) {
         delete add[content];
       } else {
@@ -493,20 +490,6 @@ const suggestions = (function() {
     // Insert suggestions, sorted (inefficient O(n^2), but fine for small values of n)
     Object.keys(add).forEach((name) => {
       const option = add[name];
-/*
-      let display = option.name;
-      let insert = option.name;
-      if (option.params) {
-        display += "()";
-        if (option.insert) {
-          insert = option.insert;
-        } else {
-          const params = option.params.filter(p => (p[0] !== "%"));
-          insert += "(" + params.map(p => `%${ p }`).join(", ") + ")";
-        }
-      }
-      console.log("ADD", display, insert, option);
-*/
       const ref = findReference(option.display.toLowerCase());
 
       const div = document.createElement("div");
@@ -541,7 +524,7 @@ const suggestions = (function() {
     if (tokens == null) { tokens = [ ]; }
 
     // Check if the identifier chain has changed the number of components
-    const dots = tokens.filter((t) => (t.token === "DOT")).length;
+    const dots = tokens.filter((t) => (t.token === "INDENTIFIER")).length;
     if (lastDots == dots) { return; }
     lastDots = dots;
 
@@ -662,6 +645,8 @@ const suggestions = (function() {
         return;
       }
 
+      if (result == null) { return set([ ]); }
+
       beforeCursor = value.substring(0, result.offset);
       afterCursor = value.substring(result.offset + result.width);
 
@@ -679,7 +664,13 @@ const suggestions = (function() {
 })();
 
 function evaluate(code) {
-  return worker.send("eval", { code }).then((result) => {
+  const safeCode = getSafeCode(code);
+  let asyncExpr = false;
+  if (safeCode.match(/(^|[^a-z_$])await([^a-z0-9_$]|$)/i)) {
+    code = `(async function() { return (${ code.match(/(.*?)(;*)$/)[1] }); })()`;
+    asyncExpr = true;
+  }
+  return worker.send("eval", { asyncExpr, code }).then((result) => {
     addOutput(result.type, result.value);
   });
 }
@@ -695,7 +686,7 @@ function getAssist(text, direction, start, end) {
   for (let start = 0; start < text.length; start++) {
     // @TODO: escape strings, comments, etc.
     if (text[start] === "%") {
-      const match = text.substring(start).match(/^(%[a-z][a-z0-9_]+)/i);
+      const match = text.substring(start).match(/^(%[a-z][a-z0-9_]*)/i);
       if (match) {
         percents.push({ start, end: start + match[1].length });
       }
@@ -820,7 +811,7 @@ input.onkeydown = function(e) {
       e.preventDefault();
       e.stopPropagation();
     } else {
-      const code = codeHistory.get(-1);
+      const code = codeHistory.get(-1, input.value);
       if (code != null) { setValue(code); }
     }
 
@@ -879,6 +870,7 @@ function runCommand(command, args) {
       });
       addOutput("result-bold", "PLAYGROUND: Clear output buffer");
       break;
+    /*
     case "async": {
       let code = args.match(/(.*?)(;*)$/);
       code = `(async function() { return (${ code[1] }); })()`;
@@ -886,13 +878,14 @@ function runCommand(command, args) {
       evaluate(code);
       break;
     }
+    */
     case "help":
       addOutput("result-bold", "PLAYGROUND: HELP");
         addOutput("result", "Commands");
         addOutput("result", "  %help            This help screen");
         addOutput("result", "  %reset           Clear command history");
         addOutput("result", "  %clear           Clear output buffer");
-        addOutput("result", "  %async EXPR      Experimental! async expression");
+        //addOutput("result", "  %async EXPR      Experimental! async expression");
         addOutput("result", "Keys");
         addOutput("result", "  up/down          Cycle through command history");
         addOutput("result", "  tab/shift-tab    Cycle between %vars");
