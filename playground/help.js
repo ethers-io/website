@@ -3,15 +3,22 @@ Help = function (ethers) {
   class Returns {
     props() { return null; }
 
-    static from(value) {
-      if (value === "_") { return B("_"); }
-
+    static fromBasic(value) {
       if (value instanceof Uint8Array) { return B("Uint8Array"); }
       if (value instanceof Promise) { return B("Promise"); }
       if (Array.isArray(value)) { return B("Array"); }
 
       const type = typeof(value);
       if (type in Basic) { return B(type); }
+
+      return null;
+    }
+
+    static from(value) {
+      if (value === "_") { return B("_"); }
+
+      const basic = Returns.fromBasic(value);
+      if (basic) { return basic; }
 
       const clsNameMatch = Help.filter((h) => (h.cls && h.name === value));
       if (clsNameMatch.length) { return H(clsNameMatch.pop().name); }
@@ -207,8 +214,19 @@ Help = function (ethers) {
       staticProperties: {
       },
       properties: {
-        getBalanceOf: Func([ "address", "%blockTag" ], B("Promise", H("BigNumber")), ""),
+        getBalance: Func([ "address", "%blockTag" ], B("Promise", H("BigNumber")), ""),
         getBlockNumber: Func([ ], B("Promise", B("number")), ""),
+      }
+    },
+    {
+      name: "FallbackProvider",
+      cls: ethers.providers.FallbackProvider,
+      inherits: "BaseProvider",
+      descr: "",
+      params: [ "providers", "%options" ],
+      staticProperties: {
+      },
+      properties: {
       }
     },
     {
@@ -228,7 +246,7 @@ Help = function (ethers) {
       name: "Wallet",
       cls: ethers.Wallet,
       descr: "A Wallet instance",
-      params: [ "privateKey", "%provider" ],
+      params: [ "privateKey", "%provider=provider" ],
       staticProperties: {
         createRandom: {
           descr: "creates a new random wallet",
@@ -1061,11 +1079,28 @@ Help = function (ethers) {
 
   ];
 
+  function getClass(name) {
+    return Help.filter((h) => (h.name === name))[0];
+  }
+
   let lastGroup = null;
   Help.forEach((descr) => {
     if (descr.group) {
       lastGroup = descr;
       return;
+    }
+
+    if (descr.cls) {
+      if (descr.properties == null) { descr.properties = { }; }
+      if (descr.staticProperties == null) { descr.staticProperties = { }; }
+
+      if (descr.inherits) {
+        let current = getClass(descr.inherits);
+        while (current) {
+          Object.assign(descr.properties, current.properties || { });
+          current = current.inherits;
+        }
+      }
     }
 
     if (lastGroup && lastGroup.populate) {

@@ -251,7 +251,7 @@ const { getSafeCode, getTokens } = (function() {
   // For example `foo++` would be identified as a safe starting point
   // because of it ends in a `+`, which isn't identified as a unary
   // postfi operation.
-  const safeRoot = "([{=;,!%^&*-+|/"; /* fix: }]) */
+  const safeRoot = "([{:=;,!%^&*-+|/"; /* fix: }]) */
 
   // @TODO: precompile all the regex
 
@@ -431,13 +431,16 @@ const { getSafeCode, getTokens } = (function() {
 
 // @TODO: Bundle these up into an IIFE for UI
 
+function scrollFull() {
+  window.scrollTo(0, document.body.scrollHeight);
+}
 function addOutput(type, content) {
   const div = document.createElement("div");
   div.classList.add("output");
   div.classList.add(type);
   div.textContent = content;
   output.insertBefore(div, inputBox);
-  window.scrollTo(0, document.body.scrollHeight);
+  scrollFull();
 }
 
 const suggestions = (function() {
@@ -446,12 +449,12 @@ const suggestions = (function() {
   let showing = [ ];
   let selection = { start: -1, end: -1, caret: -1 };
 
-  const fontSize = (function() {
-    const div = document.getElementById("sizer");
-    return parseInt(div.clientWidth / div.textContent.length);
-  })();
+  const sizerContent = document.getElementById("sizer-content");
+  const sizerCaret = document.getElementById("sizer-caret");
 
   function set(options) {
+    //const current = suggestions.querySelector(".selected");
+
     if (options == null) { options = [ ]; }
 
     showing = options.slice()
@@ -460,9 +463,8 @@ const suggestions = (function() {
     const value = input.value;
 
     {
-      const indent = value.substring(0, selStart).replace(/(.*\n)/, "").length;
-      let x = 30 + indent * fontSize;
-      if (x > output.clientWidth - 270) { x = output.clientWidth - 270; }
+      sizerContent.textContent = value.substring(0, selStart);
+      const x = Math.floor(sizerCaret.getBoundingClientRect().left);
       suggestions.style.transform = `translate(${ x }px, -100%)`;
     }
 
@@ -477,12 +479,16 @@ const suggestions = (function() {
     }
 
     // Delete any that no longer matter
+    let reselect = null;
     const add = options.reduce((accum, option) => (accum[option.name] = option, accum), { });
     Array.prototype.slice.call(suggestions.childNodes).forEach((child) => {
       const content = child.textContent;
       if (add[content]) {
         delete add[content];
       } else {
+        if (child.classList.contains("selected")) {
+          reselect = child.dataset.sortName;
+        }
         child.remove();
       }
     });
@@ -498,6 +504,13 @@ const suggestions = (function() {
       div.textContent = option.display;
       suggestions.insertBefore(div, ref);
     });
+
+    // If we deleted the selected option, reselect the closest one
+    if (reselect && suggestions.lastChild) {
+      let ref = findReference(reselect.toLowerCase());
+      if (ref == null) { ref = suggestions.lastChild; }
+      ref.classList.add("selected");
+    }
 
     updateUI();
   }
@@ -524,7 +537,7 @@ const suggestions = (function() {
     if (tokens == null) { tokens = [ ]; }
 
     // Check if the identifier chain has changed the number of components
-    const dots = tokens.filter((t) => (t.token === "INDENTIFIER")).length;
+    const dots = tokens.filter((t) => (t.token === "DOT")).length;
     if (lastDots == dots) { return; }
     lastDots = dots;
 
@@ -672,6 +685,9 @@ function evaluate(code) {
   }
   return worker.send("eval", { asyncExpr, code }).then((result) => {
     addOutput(result.type, result.value);
+    if (result.note) {
+      addOutput("log-note", result.note);
+    }
   });
 }
 
@@ -781,19 +797,6 @@ function setValue(value, assist) {
 
 input.onkeydown = function(e) {
   const meta = (e.altKey || e.ctrlKey || e.shiftKey);
-  /*
-  console.log("EEEE", e);
-  if (e.key === "Backspace" && wasHighlit) {
-    // [backspace]; 
-    let curStart = input.selectionStart, curEnd = input.selectionEnd;
-
-  const start = value.length, end = value.length;
-
-    input.value = curValue.substring(0, curStart) + value + curValue.substring(curEnd);
-  }
-  */
-//console.log(e);
-  //wasHighlit = false;
 
   if (e.code === "Escape") {
     suggestions.escape();
@@ -813,6 +816,7 @@ input.onkeydown = function(e) {
     } else {
       const code = codeHistory.get(-1, input.value);
       if (code != null) { setValue(code); }
+      scrollFull();
     }
 
   } else if (e.keyCode === 40 && !meta) {
@@ -825,6 +829,7 @@ input.onkeydown = function(e) {
     } else {
       const code = codeHistory.get(1);
       if (code != null) { setValue(code); }
+      scrollFull();
     }
 
   } else if (e.keyCode === 9 && !(e.altKey || e.ctrlKey)) {

@@ -207,6 +207,14 @@ body.darkMode #output div.output.log-error {
 body.darkMode #output div.output.log-log {
   color: #66a;
 }
+#output div.output.log-note {
+  color: #880;
+  font-size: 16px;
+  font-style: italic;
+}
+body.darkMode #output div.output.log-note {
+  color: #aa5;
+}
 #output div.output.entry {
   background: url(./caret.svg) no-repeat 8px 12px;
   background-size: 17px 17px;
@@ -247,13 +255,25 @@ body.darkMode #output div.output.error {
 textarea {
   background: url(./caret.svg) no-repeat 8px 12px;
   background-size: 17px 17px;
+  outline: none;
+  resize: none;
+}
+
+#sizer-container {
+  border: 1px solid green;
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+  top: -20px;
+  white-space: pre-wrap;
+}
+
+.input-style {
   border: none;
   font-size: 24px;
   font-family: monospace;
-  outline: none;
   overflow: hidden;
   padding: 4px 30px 4px;
-  resize: none;
   width: 100%;
 }
 

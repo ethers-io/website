@@ -107,12 +107,14 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
 
         let match = lookupClass.get(value);
         if (match) {
+          // In case they use hexx = hexlify, allow the new thing to know
+          const renamed = Object.assign({ }, match, { name });
 
           // A class we provide
-          if (match.cls) { return new ClassFollower(match); }
+          if (match.cls) { return new ClassFollower(renamed); }
 
           // A function we provide
-          if (match.func) { return Follower.from(match.name, match); }
+          if (match.func) { return Follower.from(name, renamed); }
 
           throw new Error("hmm...");
         }
@@ -121,9 +123,17 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
         match = lookupClass.get(value.constructor);
         if (match && match.cls) {
           return new DotFollower(new PropsFollower({
-            name: match.name,
+            name: name,
             returns: Returns.from(match.name)
           }, match.properties));
+        }
+
+        // Something basic
+        const returns = Returns.fromBasic(value);
+        if (returns) {
+          return new DotFollower(new PropsFollower({
+            name, returns
+          }, returns.props()));
         }
 
         // Something else
@@ -349,6 +359,9 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
         try {
           result = evalFunc(params.code);
         } catch (error) {
+          if (error instanceof SyntaxError && params.asyncExpr) {
+            return { sync: "sync", type: "error", value: JSON.stringify(error.message), note: "NB: only expressions are allowed if using `await` (no statements)", error: inspect(error) };
+          }
           return { sync: "sync", type: "error", value: JSON.stringify(error.message), error: inspect(error) };
         }
 
