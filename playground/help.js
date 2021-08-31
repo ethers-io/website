@@ -1,4 +1,5 @@
 Help = function (ethers) {
+  class DummyClass { }
 
   class Returns {
     props() { return null; }
@@ -207,29 +208,6 @@ Help = function (ethers) {
       }
     },
     {
-      name: "BaseProvider",
-      cls: ethers.providers.BaseProvider,
-      descr: "provider",
-      params: [ "network" ],
-      staticProperties: {
-      },
-      properties: {
-        getBalance: Func([ "address", "%blockTag" ], B("Promise", H("BigNumber")), ""),
-        getBlockNumber: Func([ ], B("Promise", B("number")), ""),
-      }
-    },
-    {
-      name: "FallbackProvider",
-      cls: ethers.providers.FallbackProvider,
-      inherits: "BaseProvider",
-      descr: "",
-      params: [ "providers", "%options" ],
-      staticProperties: {
-      },
-      properties: {
-      }
-    },
-    {
       name: "Resolver",
       cls: ethers.providers.Resolver,
       descr: "",
@@ -243,8 +221,24 @@ Help = function (ethers) {
       }
     },
     {
+      name: "VoidSigner",
+      cls: ethers.VoidSigner,
+      inherits: "AbstractSigner",
+      params: [ "address" ],
+      properties: {
+        address: { returns: B("string") },
+        connect: Func([ "provider" ], H("VoidSigner"), ""),
+      },
+      //description: "create a read-only Signer",
+      //descriptions: [
+      //  "the address to mock as the from address"
+      //],
+      insert: "new VoidSigner(%address)"
+    },
+    {
       name: "Wallet",
       cls: ethers.Wallet,
+      inherits: "AbstractSigner",
       descr: "A Wallet instance",
       params: [ "privateKey", "%provider=provider" ],
       staticProperties: {
@@ -257,6 +251,11 @@ Help = function (ethers) {
           descr: "from a mnemonic",
           params: [ "mnemonic", "%locale" ],
           returns: H("Wallet")
+          //descriptions: [
+          //  "a mnemonic backup phrase; 12 - 24 words",
+          //  `the HD path to derive (default: ${ JSON.stringify(ethers.utils.defaultPath) })`,
+          //  "the Wordlist or locale string to use (default: \"en\")"
+          //],
         }
       },
       properties: {
@@ -285,6 +284,238 @@ Help = function (ethers) {
     },
 
     {
+      group: "ethers.providers",
+      insert: "providers"
+    },
+    {
+      name: "BaseProvider",
+      cls: ethers.providers.BaseProvider,
+      inherits: "AbstractProvider",
+      properties: {
+        formatter: { returns: B("_") }, // @TODO
+        anyNetwork: { returns: B("boolean") },
+
+        polling: { returns: B("boolean") },
+        pollingInterval: { returns: B("number") },
+
+        ready: { returns: B("Promise", H("Network")) },
+        poll: Func([ ], B("Promise", B("_")), ""),
+        perform: Func([ "method", "params" ], B("Promise", B("_")), ""),
+
+        network: Func([ ], H("Network"), ""),
+        getNetwork: Func([ ], B("Promise", H("Network")), ""),
+
+        getEtherPrice: Func([ ], B("Promise", B("number")), ""),
+
+        getResolver: Func([ "name" ], B("Promise", H("Resolver")), ""),
+      },
+    },
+    {
+      name: "AlchemyProvider",
+      cls: ethers.providers.AlchemyProvider,
+      inherits: "StaticJsonRpcProvider",
+      description: "create a Provider connected to the Alchemy service",
+      params: [ "%network", "%apiKey" ],
+      properties: {
+        apiKey: { returns: B("string") },
+      },
+      staticProperties: {
+        getWebSocketProvider: Func([ "%network", "%apiKey" ], H("AlchemyProvider"), ""),
+        //description: "create a Provider connected to the Alchemy WebSocket service",
+        //descriptions: [
+        //  "the netwowk to connect to (default: homestead)",
+        //  "the service API key (default: a highly throttled shared key)"
+        //]
+      },
+      descriptions: [
+        "the netwowk to connect to (default: homestead)",
+        "the service API key (default: a highly throttled shared key)"
+      ],
+      insert: "new AlchemyProvider(%network)"
+    },
+    {
+      name: "CloudflareProvider",
+      cls: ethers.providers.CloudflareProvider,
+      inherits: "StaticJsonRpcProvider",
+      params: [ ],
+      //description: "create a Provider connected to the Cloudflare service",
+      //descriptions: [ ],
+      insert: "new CloudflareProvider()"
+    },
+    {
+      name: "EtherscanProvider",
+      cls: ethers.providers.EtherscanProvider,
+      inherits: "StaticJsonRpcProvider",
+      properties: {
+        apiKey: { returns: B("string") },
+      },
+      params: [ "%network", "%apiKey" ],
+      //description: "create a Provider connected to the Etherscan service",
+      //descriptions: [
+      //  "the netwowk to connect to (default: homestead)",
+      //  "the service API key (default: a highly throttled shared key)"
+      //],
+      insert: "new EtherscanProvider(%network)"
+    },
+    {
+      name: "FallbackProvider",
+      cls: ethers.providers.FallbackProvider,
+      inherits: "BaseProvider",
+      properties: {
+        providerConfigs: { returns: B("Array", B("_")) },
+        quorum: { returns: B("number") },
+      },
+      params: [ "providers", "%quorum" ],
+      //description: "create a Fallback Provider for handling multiple providers",
+      //descriptions: [
+      //  "an array of Providers or ProviderConfigs",
+      //  "the total weight that providers must agree (default: totalWeight / 2)"
+      //],
+      insert: "new FallbackProvider(%providers)"
+    },
+    {
+      name: "getDefaultProvider",
+      func: ethers.providers.getDefaultProvider,
+      returns: H("BaseProvider"),
+      params: [ "%network", "%config" ],
+      //description: "creates a Provider with a default configuration",
+      descriptions: [
+        "the network to connect to or a URL",
+        "configuration to use depending on the network"
+      ],
+      insert: "ethers.getDefaultProvider(%network)"
+    },
+    {
+      name: "getNetwork",
+      func: ethers.providers.getNetwork,
+      returns: H("Network"),
+      params: [ "network" ],
+      //description: "normalize and expand a network object or name",
+      //descriptions: [
+      //  "the netwowk to normalize"
+      //]
+    },
+    {
+      name: "InfuraProvider",
+      cls: ethers.providers.InfuraProvider,
+      inherits: "StaticJsonRpcProvider",
+      properties: {
+        apiKey: { returns: B("string") },
+        projectId: { returns: B("string") },
+        projectSecret: { returns: B("string") },
+      },
+      staticProperties: {
+        getWebSocketProvider: Func([ "%network", "%projectId" ], H("InfuraProvider"), ""),
+      },
+      description: "create a Provider connected to the INFURA service",
+      params: [ "%network", "%projectId" ],
+      //descriptions: [
+      //  "the netwowk to connect to (default: homestead)",
+      //  "the service Project ID or ProjectID and Project Secret keys (default: a highly throttled shared key)"
+      //],
+      insert: "new InfuraProvider(%network)"
+    },
+    {
+      name: "JsonRpcSigner",
+      cls: ethers.providers.JsonRpcSigner,
+      inherits: "AbtractSigner",
+      properties: {
+        provider: { returns: H("JsonRpcProvider") },
+        unlock: Func([ "password" ], B("Promise", B("boolean")), ""),
+      }
+    },
+    {
+      name: "JsonRpcProvider",
+      cls: ethers.providers.JsonRpcProvider,
+      inherits: "BaseProvider",
+      staticProperties: {
+        hexlifyTransaction: Func([ "tx", "%extra" ], B("_"), ""),
+      },
+      properties: {
+        send: Func([ "method", "params" ], B("_"), ""),
+        prepareRequest: Func([ "method", "params" ], B("_"), ""),
+
+        getSigner: Func([ "index" ], H("JsonRpcSigner"), ""),
+        //getUncheckedSigner: 
+        listAccounts: Func([], B("Array", B("string")), ""),
+      },
+      params: [ "%url", "%network" ],
+      //description: "create a Provider connected to a JSON-RPC URL",
+      //warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
+      //descriptions: [
+      //  "the URL to connect to (default: http:/\/127.0.0.1:8545)",
+      //  "the netwowk to connect to (default: auto-detect via eth_chainId)",
+      //],
+      insert: "new JsonRpcProvider(%url)"
+    },
+    {
+      name: "JsonRpcBatchProvider",
+      cls: ethers.providers.JsonRpcBatchProvider,
+      inherits: "JsonRpcProvider",
+      params: [ "%url", "%network" ],
+      //description: "create a Provider connected to a JSON-RPC URL which batches requests",
+      //warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
+      //descriptions: [
+      //  "the URL to connect to (default: http:/\/127.0.0.1:8545)",
+      //  "the netwowk to connect to (default: auto-detect via eth_chainId)",
+      //],
+      insert: "new JsonRpcBatchProvider(%url)"
+    },
+    {
+      name: "PocketProvider",
+      cls: ethers.providers.PocketProvider,
+      inherits: "StaticJsonRpcProvider",
+      properties: {
+        apiKey: { returns: B("string") },
+      },
+      params: [ "%network", "%apiKey" ],
+      //description: "create a Provider connected to the Pocket service",
+      //descriptions: [
+      //  "the netwowk to connect to (default: homestead)",
+      //  "the service API key or configuration (default: a highly throttled shared key)"
+      //],
+      insert: "new PocketProvider(%network)"
+    },
+    {
+      name: "StaticJsonRpcProvider",
+      cls: ethers.providers.StaticJsonRpcProvider,
+      inherits: "JsonRpcProvider",
+      params: [ "%url", "%network" ],
+      //description: "create a Provider connected to a JSON-RPC URL which cannot change its chain ID",
+      //warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
+      //descriptions: [
+      //  "the URL to connect to (default: http:/\/127.0.0.1:8545)",
+      //  "the netwowk to connect to (default: auto-detect via eth_chainId)",
+      //],
+      insert: "new StaticJsonRpcProvider(%url)"
+    },
+    {
+      name: "Web3Provider",
+      cls: ethers.providers.Web3Provider,
+      inherits: "JsonRpcProvider",
+      params: [ "provider", "%network" ],
+      //description: "create a Provider backed by an EIP-1193 source or legacy Web3.js provider",
+      //descriptions: [
+      //  "the existing source to connect via",
+      //  "the netwowk to connect to (default: auto-detect via eth_chainId)",
+      //],
+      insert: "new Web3Provider(%source)"
+    },
+    {
+      name: "WebSocketProvider",
+      cls: ethers.providers.WebSocketProvider,
+      inherits: "JsonRpcProvider",
+      params: [ "url", "%network" ],
+      //description: "create a Provider connected to JSON-RPC web socket URL",
+      warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
+      //descriptions: [
+      //  "the web socket URL to connect to",
+      //  "the netwowk to connect to (default: auto-detect via eth_chainId)"
+      //],
+      insert: "new WebSocketProvider(%url)"
+    },
+
+    {
       group: "ethers.utils",
       insert: "utils.",
       populate: (descr) => {
@@ -294,7 +525,7 @@ Help = function (ethers) {
           descr.func = func;
         }
 
-        if (!(descr.returns instanceof Returns)) {
+        if (descr.func && !(descr.returns instanceof Returns)) {
           throw new Error(`Bad help: ${ descr.name }`);
         }
       }
@@ -310,9 +541,11 @@ Help = function (ethers) {
     },
     /*
     {
-      name: "base58.decode",
+      _name: "base58.decode",
+      name: "decode",
+      func: ethers.utils.base58.decode,
       description: "decodes a Base-58 encoded payload",
-      returns: "Uint8Array",
+      returns: B("Uint8Array"),
       params: [ "data" ],
       descriptions: [
         "the encoded data to decode"
@@ -387,23 +620,49 @@ Help = function (ethers) {
     },
     /*
     {
-      name: "ConstructorFragment.from",
+      name: "ConstructorFragment",
+      cls: ethers.utils.ConstructorFragment,
       description: "creates a new Constructor Fragment",
-      returns: "ConstructorFragment",
+      staticProperties: {
+        from: Func([ "signature" ], H("ConstructorFragment"), "returns a new ContracutroFragment"),
+      },
+      properties: {
+        name: { returns: B("string") },
+        type: { returns: B("string") },
+        stateMutability: { returns: B("string") },
+        payable: { returns: B("boolean") },
+      },
+      returns: H("ConstructorFragment"),
       params: [ "description" ],
       descriptions: [
         "the human-readable or JSON ABI"
       ]
     },
+    */
+    {
+      name: "AbiCoder",
+      cls: ethers.utils.AbiCoder,
+      description: "",
+      properties: {
+        decode: Func([ "types", "data" ], B("_"), "decode values"),
+        encode: Func([ "types", "values" ], B("string"), "encode values"),
+      },
+      staticProperties: {
+      }
+    },
     {
       name: "defaultAbiCoder",
       description: "the default ABI coder",
-      returns: "AbiCoder"
+      returns: H("AbiCoder"),
     },
+    /*
     {
-      name: "defaultAbiCoder.decode",
+      _name: "defaultAbiCoder.decode",
+      name: "decode",
+      insert: "decode()",
+      cls: ethers.utils.defaultAbiCoder,
       description: "decode ABI encoded data",
-      returns: "Result",
+      returns: B("_"),
       params: [ "types", "data" ],
       descriptions: [
         "the array of types",
@@ -421,13 +680,11 @@ Help = function (ethers) {
       ]
     },
     */
-    /*
     {
       name: "defaultPath",
       description: "the default BIP-44 path for Ethereum",
       returns: B("string")
     },
-    */
     {
       name: "entropyToMnemonic",
       description: "converts BIP-39 entropy to its mnemonic",
@@ -597,38 +854,49 @@ Help = function (ethers) {
         "the message to hash"
       ]
     },
-    /*
     {
-      name: "HDNode.fromExtendedKey",
-      description: "create a new HDNode from an extended public or private key",
-      returns: "HDNode",
-      params: [ "extendedKey" ],
-      descriptions: [
-        "the bytes-like extended key"
-      ]
-    },
-    {
-      name: "HDNode.fromMnemonic",
-      description: "create a new HDNode from a mnemonic",
-      returns: "HDNode",
-      params: [ "mnemoinc", "%password", "%wordlist" ],
-      descriptions: [
-        "the BIP-44 mnemonic",
-        'the password to decrypt with (defualt: no password)',
-        "the Wordlist or locale to use (default: en)"
-      ]
-    },
-    {
-      name: "HDNode.fromSeed",
-      description: "create a new HDNode from a seed",
-      returns: "HDNode",
-      params: [ "seed" ],
-      descriptions: [
-        "the bytes-like seed"
-      ]
-    },
-    */
+      name: "HDNode",
+      cls: ethers.utils.HDNode,
+      description: "",
+      staticProperties: {
+        fromExtendedKey: Func([ "extendedKey" ], H("HDNode"), "create a new HDNode from an extended public or private key"),
+        //descriptions: [
+        //  "the bytes-like extended key"
+        //]
+        fromMnemonic: Func([ "mnemoinc", "%password", "%wordlist" ], H("HDNode"), "create a new HDNode from a mnemonic"),
+        //descriptions: [
+        //  "the BIP-44 mnemonic",
+        //  'the password to decrypt with (defualt: no password)',
+        //  "the Wordlist or locale to use (default: en)"
+        //]
+        fromSeed: Func([ "seed" ], H("HDNode"), "create a new HDNode from a seed"),
+        //descriptions: [
+        //  "the bytes-like seed"
+        //]
+      },
+      properties: {
+        privateKey: { returns: B("string") },
+        publicKey: { returns: B("string") },
 
+        fingerprint: { returns: B("string") },
+        parentFingerprint: { returns: B("string") },
+
+        address: { returns: B("string") },
+
+        mnemonic: { returns: B("string") },
+        path: { returns: B("string") },
+
+        chainCode: { returns: B("string") },
+
+        index: { returns: B("number") },
+        depth: { returns: B("number") },
+
+        extendedKey: { returns: B("string") },
+
+        neuter: Func([], H("HDNode"), ""),
+        derivePath: Func([ "path" ], H("HDNode"), ""),
+      }
+    },
     {
       name: "hexConcat",
       description: "concatenates multiple bytes-likes",
@@ -650,7 +918,6 @@ Help = function (ethers) {
     {
       name: "hexDataSlice",
       description: "slices a bytes-like",
-      //func: ethers.utils.hexDataSlice,
       returns: B("string", D("Bytes")),
       params: [ "bytesLike", "start", "%end" ],
       paramDescr: [
@@ -661,7 +928,6 @@ Help = function (ethers) {
     },
     {
       name: "hexlify",
-      //func: ethers.utils.hexlify,
       descr: "convert a data-like to a hexdatastring",
       returns: B("string", D("Bytes")),
       params: [ "datalike" ],
@@ -705,19 +971,42 @@ Help = function (ethers) {
         "the string to hash to UTF-8 data of"
       ]
     },
-    /*
     {
       name: "Interface",
-      cls: 
+      cls: ethers.utils.Interface,
       description: "create a new Interface.",
-      returns: H("Interface"),
+      staticProperties: {
+        isInterface: Func([ "value" ], B("boolean"), ""),
+      },
+      properties: {
+        //fragments: { returns: B("array", B("_")) }, // @TODO: B("Fragment")
+        format: Func([ '%format="full"' ], B("string"), ""),
+        //getFunction: Func([ "name" ], B("_"), ""), // @TOOD: _ => Fragment
+
+        decodeErrorResult: Func([ "fragment", "data"], B("_"), ""),
+        encodeErrorResult: Func([ "fragment", "values" ], B("string"), ""),
+
+        decodeFunctionData: Func([ "fragment", "data"], B("_"), ""),
+        encodeFunctionData: Func([ "fragment", "values" ], B("string"), ""),
+
+        decodeFunctionResult: Func([ "fragment", "data"], B("_"), ""),
+        encodeFunctionResult: Func([ "fragment", "values" ], B("string"), ""),
+
+        encodeFilterTopics: Func([ "fragment", "values" ], B("Array", B("_")), ""),
+
+        encodeEventLog: Func([ "fragment", "values" ], B("_"), ""),
+        decodeEventLog: Func([ "fragment", "data", "topics" ], B("_"), ""),
+
+        parseTransaction: Func([ "tx" ], B("_"), ""),
+        parseLog: Func([ "log", "data" ], B("_"), ""),
+        parseError: Func([ "data" ], B("_"), ""),
+      },
       params: [ "abi" ],
       paramDescr: [
         "the ABI to use"
       ],
       insert: "new Interface(%abi)"
     },
-    */
     {
       name: "isBytes",
       description: "returns true if data is a valid Bytes",
@@ -852,17 +1141,15 @@ Help = function (ethers) {
       ],
       insert: "parseUnits(%text, 18)"
     },
-    /*
     {
       name: "parseTransaction",
       description: "parses an encoded transaction into a transaction.",
-      returns: "object<Transaction>",
+      returns: B("_"),
       params: [ "encodedTx" ],
       paramDescr: [
         "the encoded transaction bytes-like"
       ]
     },
-    */
     {
       name: "randomBytes",
       description: "creates an array of cryptographically secure random bytes.",
@@ -958,18 +1245,29 @@ Help = function (ethers) {
         "the bytes-like to hash"
       ]
     },
-    /*
     {
       name: "SigningKey",
+      cls: ethers.utils.SigningKey,
       description: "create a new SigningKey",
-      returns: "SigningKey",
       params: [ "privateKey" ],
+      staticProperties: {
+        isSigningKey: Func([ "value" ], B("boolean"), ""),
+      },
+      properties: {
+        curve: { returns: B("string") },
+
+        privateKey: { returns: B("string") },
+        publicKey: { returns: B("string") },
+        compressedPublicKey: { returns: B("string") },
+
+        signDigest: Func([ "digest" ], H("Signature"), ""),
+        computeSharedSecret: Func([ "otherKey" ], B("string"), ""),
+      },
       paramDescr: [
         "the private key to sign with"
       ],
       insert: "new SigningKey(%privateKey)"
     },
-    */
     {
       name: "solidityKeccak256",
       description: "compute the Solidity keccak256 hash of the non-standard packed bytes for values of given types.",
@@ -1077,6 +1375,120 @@ Help = function (ethers) {
       ]
     },
 
+    {
+      group: "hidden"
+    },
+    {
+      name: "AbstractSigner",
+      cls: (new DummyClass()),
+      staticProperties: {
+        isSigner: Func([ "value" ], B("boolean"), "")
+      },
+      properties: {
+        provider: { returns: H("BaseProvider") },
+
+        getAddress: Func([], B("Promise", B("string")), ""),
+        signMessage: Func([ "message" ], B("Promise", B("string")), ""),
+        signTransaction: Func([ "tx" ], B("Promise", B("string")), ""),
+
+        connect: Func([ "provider" ], H("AbstractSigner"), ""),
+
+        getBalance: Func([ "%blockTag" ], B("Promise", H("BigNumber")), ""),
+        getTransactionCount: Func([ "%blockTag" ], B("Promise", B("number")), ""),
+        estimateGas: Func([ "tx", "%blockTag" ], B("Promise", H("BigNumber")), ""),
+        call: Func([ "tx", "%blockTag" ], B("Promise", B("string")), ""),
+
+        sendTransaction: Func([ "tx" ], B("Promise", B("_")), ""), // @TODO
+        getChainId: Func([ ], B("Promise", B("number")), ""),
+
+        getGasPrice: Func([ ], B("Promise", H("BigNumber")), ""),
+        getFeeData: Func([ ], B("Promise", H("FeeData")), ""),
+
+        resolveName: Func([ "name" ], B("Promise", B("string")), ""),
+
+        checkTransaction: Func([ "tx" ], B("_"), ""),
+        populateTransaction: Func([ "tx" ], B("Promise", B("_")), ""),
+      }
+    },
+    {
+      name: "AbstractProvider",
+      cls: ethers.providers.BaseProvider,
+      descr: "provider",
+      params: [ "network" ],
+      staticProperties: {
+        isProvider: Func([ "value" ], B("boolean"), ""),
+      },
+      properties: {
+        getNetwork: Func([ ], B("Promise", H("Network")), ""),
+
+        getBlockNumber: Func([ ], B("Promise", B("number")), ""),
+        getGasPrice: Func([ ], B("Promise", H("BigNumber")), ""),
+        getFeeData: Func([ ], B("Promise", H("FeeData")), ""),
+
+        g: Func([ ], B("Promise", H("BigNumber")), ""),
+
+        getBalance: Func([ "address", "%blockTag" ], B("Promise", H("BigNumber")), ""),
+        getTransactionCount: Func([ "address", "%blockTag" ], B("Promise", H("number")), ""),
+        getCode: Func([ "address", "%blockTag" ], B("Promise", H("string")), ""),
+        getStorageAt: Func([ "address", "position", "%blockTag" ], B("Promise", H("string")), ""),
+
+        sendTransaction: Func([ "tx" ], B("Promise", B("_")), ""), //TODO
+        call: Func([ "tx", "%blockTag" ], B("Promise", B("string")), ""),
+        estimateGas: Func([ "tx" ], B("Promise", H("BigNumber")), ""),
+
+        getBlock: Func([ "blockTag" ], B("Promise", B("_")), ""), // @TODO
+        getBlockWithTransactions: Func([ "blockTag" ], B("Promise", B("_")), ""), // @TODO
+        getTransaction: Func([ "hash" ], B("Promise", B("_")), ""), // @TODO
+        getTransactionReceipt: Func([ "hash" ], B("Promise", B("_")), ""), // @TODO
+
+        getLogs: Func([ "filter" ], B("Promise", B("_")), ""), // @TODO
+
+        resolveName: Func([ "name" ], B("Promise", B("string")), ""),
+        lookupAddress: Func([ "address" ], B("Promise", B("string")), ""),
+
+        on: Func([ "eventName", "listener" ], H("BaseProvider"), ""),
+        once: Func([ "eventName", "listener" ], H("BaseProvider"), ""),
+        emit: Func([ "eventName" ], B("boolean"), ""),
+        listenerCount: Func([ "eventName" ], B("number"), ""),
+        listeners: Func([ "eventName" ], B("Array", B("_")), ""),
+        off: Func([ "eventName", "listener" ], H("BaseProvider"), ""),
+        removedAllListeners: Func([ "eventName" ], H("BaseProvider"), ""),
+
+        addListener: Func([ "eventName", "listener" ], H("BaseProvider"), ""),
+        removeListener: Func([ "eventName", "listener" ], H("BaseProvider"), ""),
+
+        waitForTransaction: Func([ "hash", "%confirms", "%timeout" ], B("Promise", B("_")), ""), // @TODO
+      }
+    },
+    {
+      name: "Network",
+      cls: (new DummyClass()),
+      properties: {
+        name: { returns: B("string") },
+        chainId: { returns: B("number") },
+        ensAddress: { returns: B("string") },
+      }
+    },
+    {
+      name: "Signature",
+      cls: (new DummyClass()),
+      properties: {
+        r: { returns: B("string") },
+        s: { returns: B("string") },
+        _vs: { returns: B("string") },
+        recoveryParam: { returns: B("number") },
+        v: { returns: B("number") },
+      }
+    },
+    {
+      name: "FeeData",
+      cls: (new DummyClass()),
+      properties: {
+        gasPrice: { returns: H("BigNumber") },
+        maxFeePerGas: { returns: H("BigNumber") },
+        maxPriorityFeePerGas: { returns: H("BigNumber") },
+      }
+    }
   ];
 
   function getClass(name) {
@@ -1095,11 +1507,18 @@ Help = function (ethers) {
       if (descr.staticProperties == null) { descr.staticProperties = { }; }
 
       if (descr.inherits) {
+        const props = [ Object.assign({ }, descr.properties) ];
+        const staticProps = [ Object.assign({ }, descr.staticProperties) ];
+
         let current = getClass(descr.inherits);
         while (current) {
-          Object.assign(descr.properties, current.properties || { });
+          props.unshift(current.properties || { });
+          staticProps.unshift(current.staticProperties || { });
           current = current.inherits;
         }
+
+        Object.assign(descr.properties, ...props);
+        Object.assign(descr.staticProperties, ...staticProps);
       }
     }
 
@@ -1162,56 +1581,6 @@ Help = function (ethers) {
     insert: 'FixedNumber.from(%value, "fixed128x18")'
   },
   {
-    name: "getDefaultProvider",
-    description: "creates a Provider with a default configuration",
-    returns: "Provider",
-    params: [ "%network", "%config" ],
-    descriptions: [
-      "the network to connect to or a URL",
-      "configuration to use depending on the network"
-    ],
-    insert: "ethers.getDefaultProvider(%network)"
-  },
-  {
-    name: "VoidSigner",
-    description: "create a read-only Signer",
-    returns: "VoidSigner",
-    params: [ "address" ],
-    descriptions: [
-      "the address to mock as the from address"
-    ],
-    insert: "new VoidSigner(%address)"
-  },
-  {
-    name: "Wallet",
-    description: "creates an new Wallet from a private key.",
-    returns: "Wallet",
-    params: [ "privateKey", "%provider" ],
-    descriptions: [
-      "a 32 byte private key",
-      "a provider to connect to"
-    ],
-    insert: "new Wallet(%privateKey, provider)"
-  },
-  {
-    name: "Wallet.createRandom",
-    description: "creates an new random Wallet.",
-    returns: "Wallet",
-    params: [ ]
-  },
-  {
-    name: "Wallet.fromMnemonic",
-    description: "creates an new Wallet from a mnemonic.",
-    returns: "Wallet",
-    params: [ "mnemonic", "%path", "%wordlist" ],
-    descriptions: [
-      "a mnemonic backup phrase; 12 - 24 words",
-      `the HD path to derive (default: ${ JSON.stringify(ethers.utils.defaultPath) })`,
-      "the Wordlist or locale string to use (default: \"en\")"
-    ],
-    insert: `Wallet.fromMnemonic(%mnemonic, "${ ethers.utils.defaultPath }", "en")`
-  },
-  {
     group: "ethers.constants",
     insert: "constants"
   },
@@ -1269,164 +1638,5 @@ Help = function (ethers) {
     name: "Zero",
     description: "BigNumber for 0",
     returns: H("BigNumber")
-  },
-
-  {
-    group: "ethers.providers",
-    insert: "providers"
-  },
-  {
-    name: "AlchemyProvider",
-    description: "create a Provider connected to the Alchemy service",
-    returns: "AlchemyProvider",
-    params: [ "%network", "%apiKey" ],
-    descriptions: [
-      "the netwowk to connect to (default: homestead)",
-      "the service API key (default: a highly throttled shared key)"
-    ],
-    insert: "new AlchemyProvider(%network)"
-  },
-  {
-    name: "AlchemyProvider.getWebSocketProvider",
-    description: "create a Provider connected to the Alchemy WebSocket service",
-    params: [ "%network", "%apiKey" ],
-    descriptions: [
-      "the netwowk to connect to (default: homestead)",
-      "the service API key (default: a highly throttled shared key)"
-    ]
-  },
-  {
-    name: "CloudflareProvider",
-    description: "create a Provider connected to the Cloudflare service",
-    returns: "CloudflareProvider",
-    params: [ ],
-    descriptions: [ ],
-    insert: "new CloudflareProvider()"
-  },
-  {
-    name: "EtherscanProvider",
-    description: "create a Provider connected to the Etherscan service",
-    returns: "EtherscanProvider",
-    params: [ "%network", "%apiKey" ],
-    descriptions: [
-      "the netwowk to connect to (default: homestead)",
-      "the service API key (default: a highly throttled shared key)"
-    ],
-    insert: "new EtherscanProvider(%network)"
-  },
-  {
-    name: "FallbackProvider",
-    description: "create a Fallback Provider for handling multiple providers",
-    returns: "FallbackProvider",
-    params: [ "providers", "%quorum" ],
-    descriptions: [
-      "an array of Providers or ProviderConfigs",
-      "the total weight that providers must agree (default: totalWeight / 2)"
-    ],
-    insert: "new FallbackProvider(%providers)"
-  },
-  {
-    name: "getNetwork",
-    description: "normalize and expand a network object or name",
-    returns: "object<Network>",
-    params: [ "network" ],
-    descriptions: [
-      "the netwowk to normalize"
-    ]
-  },
-  {
-    name: "InfuraProvider",
-    description: "create a Provider connected to the INFURA service",
-    returns: "InfuraProvider",
-    params: [ "%network", "%projectId" ],
-    descriptions: [
-      "the netwowk to connect to (default: homestead)",
-      "the service Project ID or ProjectID and Project Secret keys (default: a highly throttled shared key)"
-    ],
-    insert: "new InfuraProvider(%network)"
-  },
-  {
-    name: "InfuraProvider.getWebSocketProvider",
-    description: "create a Provider connected to the INFURA WebSocket service",
-    params: [ "%network", "%projectId" ],
-    descriptions: [
-      "the netwowk to connect to (default: homestead)",
-      "the service Project ID or ProjectID and Project Secret keys (default: a highly throttled shared key)"
-    ]
-  },
-  {
-    name: "JsonRpcProvider",
-    description: "create a Provider connected to a JSON-RPC URL",
-    returns: "JsonRpcProvider",
-    params: [ "%url", "%network" ],
-    warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
-    descriptions: [
-      "the URL to connect to (default: http:/\/127.0.0.1:8545)",
-      "the netwowk to connect to (default: auto-detect via eth_chainId)",
-    ],
-    insert: "new JsonRpcProvider(%url)"
-  },
-  {
-    name: "JsonRpcBatchProvider",
-    description: "create a Provider connected to a JSON-RPC URL which batches requests",
-    returns: "JsonRpcBatchProvider",
-    params: [ "%url", "%network" ],
-    warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
-    descriptions: [
-      "the URL to connect to (default: http:/\/127.0.0.1:8545)",
-      "the netwowk to connect to (default: auto-detect via eth_chainId)",
-    ],
-    insert: "new JsonRpcBatchProvider(%url)"
-  },
-  {
-    name: "PocketProvider",
-    description: "create a Provider connected to the Pocket service",
-    returns: "PocketProvider",
-    params: [ "%network", "%apiKey" ],
-    descriptions: [
-      "the netwowk to connect to (default: homestead)",
-      "the service API key or configuration (default: a highly throttled shared key)"
-    ],
-    insert: "new PocketProvider(%network)"
-  },
-  {
-    name: "StaticJsonRpcProvider",
-    description: "create a Provider connected to a JSON-RPC URL which cannot change its chain ID",
-    returns: "StaticJsonRpcProvider",
-    params: [ "%url", "%network" ],
-    warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
-    descriptions: [
-      "the URL to connect to (default: http:/\/127.0.0.1:8545)",
-      "the netwowk to connect to (default: auto-detect via eth_chainId)",
-    ],
-    insert: "new StaticJsonRpcProvider(%url)"
-  },
-  {
-    name: "Web3Provider",
-    description: "create a Provider backed by an EIP-1193 source or legacy Web3.js provider",
-    returns: "Web3Provider",
-    params: [ "provider", "%network" ],
-    descriptions: [
-      "the existing source to connect via",
-      "the netwowk to connect to (default: auto-detect via eth_chainId)",
-    ],
-    insert: "new Web3Provider(%source)"
-  },
-  {
-    name: "WebSocketProvider",
-    description: "create a Provider connected to JSON-RPC web socket URL",
-    returns: "WebSocketProvider",
-    params: [ "url", "%network" ],
-    warnings: "Secure Websites (such as this) cannot connect to insecure localhost",
-    descriptions: [
-      "the web socket URL to connect to",
-      "the netwowk to connect to (default: auto-detect via eth_chainId)"
-    ],
-    insert: "new WebSocketProvider(%url)"
-  },
-
-  {
-    group: "ethers.utils",
-    insert: "utils"
   },
 */

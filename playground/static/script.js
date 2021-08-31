@@ -3,7 +3,10 @@ const inputBox = document.getElementById("input-box");
 const output = document.getElementById("output");
 
 const settings = (function() {
-  const flags = [ "showSidebar", "darkMode" ];
+  const flags = [
+    "showSidebar", "darkMode", "preserveHistory",
+    "xAutoComplete", "xInjectedProvider"
+   ];
 
   // Storage Operations
 
@@ -109,7 +112,10 @@ const codeHistory = (function() {
     if (code !== historyCode[historyCode.length - 1]) {
       historyCode.push(code);
     }
-    localStorage.setItem("history", JSON.stringify(historyCode));
+
+    if (settings.get("preserveHistory")) {
+      localStorage.setItem("history", JSON.stringify(historyCode));
+    }
   }
 
   function clear() {
@@ -628,6 +634,12 @@ const suggestions = (function() {
 
   let lastState = { value: null, start: -1, end: -1 };
   function update() {
+    if (!settings.get("xAutoComplete")) {
+      set([ ]);
+      updateUI();
+      return;
+    }
+
     const start = input.selectionStart, end = input.selectionEnd;
     const value = input.value;
 
@@ -795,6 +807,10 @@ function setValue(value, assist) {
   grow();
 }
 
+// @TODO: Move up/down to key up so we can have sync selection
+
+// @TODO: add a suggestions.skip(value) to reset the value/start state
+let skipSuggestions = false;
 input.onkeydown = function(e) {
   const meta = (e.altKey || e.ctrlKey || e.shiftKey);
 
@@ -815,7 +831,10 @@ input.onkeydown = function(e) {
       e.stopPropagation();
     } else {
       const code = codeHistory.get(-1, input.value);
-      if (code != null) { setValue(code); }
+      if (code != null) {
+        setValue(code);
+        skipSuggestions = true;
+      }
       scrollFull();
     }
 
@@ -828,7 +847,10 @@ input.onkeydown = function(e) {
       e.stopPropagation();
     } else {
       const code = codeHistory.get(1);
-      if (code != null) { setValue(code); }
+      if (code != null) {
+        setValue(code);
+        skipSuggestions = true;
+      }
       scrollFull();
     }
 
@@ -841,6 +863,11 @@ input.onkeydown = function(e) {
 };
 
 input.oninput = function() {
+  console.log("SKIP", skipSuggestions);
+  if (skipSuggestions) {
+    skipSuggestions = false;
+    return;
+  }
   suggestions.update();
 };
 
@@ -862,6 +889,7 @@ function bounce(direction, e) {
   return false;
 }
 
+// @TODO: Nuke this? We have a settings panel now...
 function runCommand(command, args) {
   switch (command) {
     case "reset":
@@ -875,22 +903,12 @@ function runCommand(command, args) {
       });
       addOutput("result-bold", "PLAYGROUND: Clear output buffer");
       break;
-    /*
-    case "async": {
-      let code = args.match(/(.*?)(;*)$/);
-      code = `(async function() { return (${ code[1] }); })()`;
-      console.log("CC", code);
-      evaluate(code);
-      break;
-    }
-    */
     case "help":
       addOutput("result-bold", "PLAYGROUND: HELP");
         addOutput("result", "Commands");
         addOutput("result", "  %help            This help screen");
         addOutput("result", "  %reset           Clear command history");
         addOutput("result", "  %clear           Clear output buffer");
-        //addOutput("result", "  %async EXPR      Experimental! async expression");
         addOutput("result", "Keys");
         addOutput("result", "  up/down          Cycle through command history");
         addOutput("result", "  tab/shift-tab    Cycle between %vars");
@@ -939,6 +957,11 @@ input.onkeyup = function(e) {
     setValue("");
   }
 
+  // @TODO: Add a way to force the current value, start, end to skip
+  if (skipSuggestions) {
+    skipSuggestions = false;
+    return;
+  }
   suggestions.update();
 };
 
@@ -1094,5 +1117,52 @@ input.onkeyup = function(e) {
   };
 })();
 
-document.getElementById("button-sidebar").onclick = settings.toggleFunc("showSidebar");
-document.getElementById("button-darkmode").onclick = settings.toggleFunc("darkMode");
+(function() {
+  function selectTab(el) {
+    document.querySelector("#sidebar .tab.selected").classList.remove("selected");
+    document.querySelector("#sidebar .panel.selected").classList.remove("selected");
+    el.parentNode.classList.add("selected");
+    document.getElementById("panel-" + el.dataset.panel).classList.add("selected");
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#sidebar .tab .icon"), (el) => {
+    const key = el.dataset.panel;
+    if (key === settings.get("tab")) { selectTab(el); }
+
+    el.onclick = function() {
+      selectTab(el);
+      settings.set("tab", key);
+    };
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("#sidebar .checkbox"), (el) => {
+    const key = el.dataset.key;
+    console.log("K", key, settings.get(key));
+    if (settings.get(key)) { el.classList.add("selected"); }
+
+    el.onclick = function() {
+      const on = !el.classList.contains("selected");
+      el.classList[on ? "add": "remove"]("selected");
+      settings.set(key, on);
+
+      // Disabling preserveHistory should clear the current stored history
+      if (key === "preserveHistory" && !on) {
+        localStorage.removeItem("history");
+      }
+    };
+  });
+
+  document.getElementById("button-clear-history").onclick = function() {
+    codeHistory.clear();
+    addOutput("result-bold", "PLAYGROUND: Reset code history");
+  };
+
+  document.getElementById("button-clear-settings").onclick = function() {
+    settings.clear();
+    addOutput("result-bold", "PLAYGROUND: Reset settings");
+  };
+
+  document.getElementById("button-sidebar").onclick = settings.toggleFunc("showSidebar");
+  document.getElementById("button-darkmode").onclick = settings.toggleFunc("darkMode");
+
+})();

@@ -371,6 +371,7 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
         if (result instanceof Promise) {
           post({ notice: "async-running", id: id });
           return await result.then((result) => {
+            if (params.asyncExpr) { _ = result; }
             _p = result;
             return { sync: "async", type: "result", value: inspect(result) };
           }, (error) => {
