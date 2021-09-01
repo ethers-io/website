@@ -185,6 +185,48 @@ Help = function (ethers) {
       }
     },
     {
+      name: "Contract",
+      cls: ethers.Contract,
+      params: [ "address", "abi", "providerOrSigner" ],
+      //description: "creates a new Contract meta-class instance",
+      //descriptions: [
+      //  "the address to onnect to",
+      //  "the ABI of the deployed contract",
+      //  "the Signer or Provider to connect with"
+      //],
+      insert: "new Contract(%address, %abi, provider)"
+    },
+    {
+      name: "ContractFactory",
+      cls: ethers.ContractFactory,
+      params: [ "abi", "bytecode", "signer" ],
+      staticProperties: {
+        fromSolidity: Func([ "compilerOutput", "signer" ], H("ContractFactory"), ""),
+        getInterface: Func([ "interface" ], H("Interface"), ""),
+        getContractAddress: Func([ "tx" ], B("string"), ""),
+        getContract: Func([ "address", "interface", "signer" ], H("Contract"), ""),
+      },
+      properties: {
+        interface: { returns: H("Interface") },
+        bytecode: { returns: B("string") },
+        signer: { returns: H("AbstractSigner") },
+
+        getDeployTransaction: Func([], B("_"), ""), // TODO
+        deploy: Func([ ], B("Promise", H("Contract")), ""),
+
+        attach: Func([ "address" ], H("Contract"), ""),
+        connect: Func([ "signer" ], H("Contract"), ""),
+      },
+      //description: "creates a new ContractFactory for deploying contracts",
+      //returns: "ContractFactory",
+      //descriptions: [
+      //  "the ABI of the deployed contract",
+      //  "the contract initcode",
+      //  "the Signer to deploy with"
+      //],
+      insert: "new ContractFactory(%abi, %bytecode, %signer)"
+    },
+    {
       name: "FixedNumber",
       cls: ethers.FixedNumber,
       descr: "",
@@ -293,6 +335,7 @@ Help = function (ethers) {
       inherits: "AbstractProvider",
       properties: {
         formatter: { returns: B("_") }, // @TODO
+        network: { returns: H("Network") },
         anyNetwork: { returns: B("boolean") },
 
         polling: { returns: B("boolean") },
@@ -302,7 +345,6 @@ Help = function (ethers) {
         poll: Func([ ], B("Promise", B("_")), ""),
         perform: Func([ "method", "params" ], B("Promise", B("_")), ""),
 
-        network: Func([ ], H("Network"), ""),
         getNetwork: Func([ ], B("Promise", H("Network")), ""),
 
         getEtherPrice: Func([ ], B("Promise", B("number")), ""),
@@ -418,7 +460,7 @@ Help = function (ethers) {
     {
       name: "JsonRpcSigner",
       cls: ethers.providers.JsonRpcSigner,
-      inherits: "AbtractSigner",
+      inherits: "AbstractSigner",
       properties: {
         provider: { returns: H("JsonRpcProvider") },
         unlock: Func([ "password" ], B("Promise", B("boolean")), ""),
@@ -1492,6 +1534,7 @@ Help = function (ethers) {
   ];
 
   function getClass(name) {
+    if (name == null) { return null; }
     return Help.filter((h) => (h.name === name))[0];
   }
 
@@ -1507,13 +1550,19 @@ Help = function (ethers) {
       if (descr.staticProperties == null) { descr.staticProperties = { }; }
 
       if (descr.inherits) {
+        //const names = [ descr.name ];
         const props = [ Object.assign({ }, descr.properties) ];
         const staticProps = [ Object.assign({ }, descr.staticProperties) ];
 
-        let current = getClass(descr.inherits);
+        let current = descr.inherits;
         while (current) {
+          current = getClass(current);
+          if (!current) { throw new Error(`missing super: ${ descr.name }`); }
+
+          //names.unshift(current.name);
           props.unshift(current.properties || { });
           staticProps.unshift(current.staticProperties || { });
+
           current = current.inherits;
         }
 
@@ -1523,10 +1572,12 @@ Help = function (ethers) {
     }
 
     if (lastGroup && lastGroup.populate) {
-      console.log("populating", descr);
+      //console.log("populating", descr);
       lastGroup.populate(descr);
     }
   });
+
+self._Help = Help;
 
   return { Basic, Globals, Help, Returns };
 };
@@ -1544,30 +1595,6 @@ Help = function (ethers) {
     descriptions: [
       "the value of the BigNumber as any compatible type"
     ]
-  },
-  {
-    name: "Contract",
-    description: "creates a new Contract meta-class instance",
-    returns: "Contract",
-    params: [ "address", "abi", "providerOrSigner" ],
-    descriptions: [
-      "the address to onnect to",
-      "the ABI of the deployed contract",
-      "the Signer or Provider to connect with"
-    ],
-    insert: "new Contract(%address, %abi, provider)"
-  },
-  {
-    name: "ContractFactory",
-    description: "creates a new ContractFactory for deploying contracts",
-    returns: "ContractFactory",
-    params: [ "abi", "bytecode", "signer" ],
-    descriptions: [
-      "the ABI of the deployed contract",
-      "the contract initcode",
-      "the Signer to deploy with"
-    ],
-    insert: "new ContractFactory(%abi, %bytecode, %signer)"
   },
   {
     name: "FixedNumber.from",

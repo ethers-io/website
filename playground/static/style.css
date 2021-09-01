@@ -215,6 +215,13 @@ body.darkMode #output div.output.log-log {
 body.darkMode #output div.output.log-note {
   color: #aa5;
 }
+#output div.output.log-provider {
+  color: #880;
+  font-size: 16px;
+}
+body.darkMode #output div.output.log-provider {
+  color: #aa5;
+}
 #output div.output.entry {
   background: url(./caret.svg) no-repeat 8px 12px;
   background-size: 17px 17px;

@@ -24,12 +24,12 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
     class Eip1193PassThrough {
       constructor() { }
 
-      request(method, params) {
-        console.log(method, params);
-        //return send("provider", { method, params });
-        return new Promise((resolve, reject) => {
-          reject(new Error("not implemented yet; coming soon"));
-        });
+      async request(params) {
+        const resp = await send("provider", params);
+        if (resp.error) {
+          throw new Error(resp.error);
+        }
+        return resp.result;
       }
 
       on() {
@@ -197,6 +197,22 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
       }
     }
 
+    /*
+    class ContractFollower extends Follower {
+      constructor(contract) {
+        super({ returns: Returns.from("Contract") });
+      }
+
+      keys() {
+        const keys = [ "address" ];
+        // populateTransaction, staticCall, estimateGas
+      }
+
+      follow(key) {
+      }
+    }
+    */
+
     class PropsFollower extends Follower {
       constructor(descr, props) {
         super(descr);
@@ -348,7 +364,9 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
     function send(action, params) {
       const id = nextId++;
       post({ action, id, params });
-      return new Promise((resolve) => { resolveMap[String(id)] = resolve; });
+      return new Promise((resolve) => {
+        resolveMap[String(id)] = resolve;
+      });
     }
 
     async function handleAction(action, params) {

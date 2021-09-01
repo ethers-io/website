@@ -164,14 +164,29 @@ const worker = (function () {
 
   function send(action, params) {
     const id = nextId++;
-    console.log(">>>", { action, id, params });
+    //console.log(">>>", { action, id, params });
     worker.postMessage(JSON.stringify({ action, id, params }));
 
     return new Promise((resolve) => { resolveMap[String(id)] = resolve; });
   }
 
   async function handleAction(action, params) {
-    throw new Erro(`unknown action: ${ action }`);
+    if (action === "provider") {
+      if (!settings.get("xInjectedProvider") || !window.ethereum || !window.ethereum.request) {
+        return { error: "provider not available" };
+      }
+
+      addOutput("log-provider", `Provider Request(${ params.method }): ${ JSON.stringify(params.params) }`);
+
+      try {
+        const result = await window.ethereum.request(params);
+        console.log("Res", result);
+        return { result };
+      } catch (error) {
+        console.log("Err", error);
+        return { error: error.message };
+      }
+    }
   }
 
   function handleNotice(notice, params) {
@@ -214,7 +229,7 @@ const worker = (function () {
 
     } else if (data.action) {
       handleAction(data.action, data.params || { }).then((result) => {
-        postMessage(JSON.stringify({ id, result }));
+        worker.postMessage(JSON.stringify({ id: data.id, result }));
       }, (error) => {
         console.log(error);
       });
@@ -663,7 +678,7 @@ const suggestions = (function() {
     }
 
     worker.send("inspect", { tokens }).then((result) => {
-      console.log("INSPECT", result);
+      //console.log("INSPECT", result);
 
       // Race happened and we lost; no updates from this response
       if (value !== input.value || start !== input.selectionStart || end !== input.selectionEnd) {
@@ -863,7 +878,6 @@ input.onkeydown = function(e) {
 };
 
 input.oninput = function() {
-  console.log("SKIP", skipSuggestions);
   if (skipSuggestions) {
     skipSuggestions = false;
     return;
@@ -1137,7 +1151,7 @@ input.onkeyup = function(e) {
 
   Array.prototype.forEach.call(document.querySelectorAll("#sidebar .checkbox"), (el) => {
     const key = el.dataset.key;
-    console.log("K", key, settings.get(key));
+
     if (settings.get(key)) { el.classList.add("selected"); }
 
     el.onclick = function() {
