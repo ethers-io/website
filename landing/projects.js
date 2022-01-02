@@ -46,6 +46,11 @@ const Projects = [{
   url: "https://github.com/ensdomains/ens-app",
   score: 79
 },{
+  image: "aboutlo_ether-swr.png",
+  name: "Ether-SWR",
+  url: "https://github.com/aboutlo/ether-swr",
+  score: 84
+},{
   image: "ethereum-optimism_optimism.svg",
   name: "Optimism",
   url: "https://github.com/ethereum-optimism/optimism",
