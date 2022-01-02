@@ -262,6 +262,81 @@ a.link:hover {
   transform: translateY(8px);
 }
 
+/* Sponsors */
+
+.tiers {
+  border-radius: 25px;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  padding-left: 50px;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  margin-top: -20px;
+  margin-bottom: 40px;
+  min-width: 850px;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.tiers.gold {
+  background: #fcfce6;
+  ddbackground: #fcfcd2;
+  border: 1px solid #898900;
+}
+
+.tiers .label {
+  color: #898900;
+  font-weight: bold;
+  height: 175px;
+  left: 20px;
+  position: absolute;
+  text-align: center;
+  transform: rotate(-90deg);
+  width: 175px;
+}
+
+.sponsor {
+  ddd-border: 1px solid #000;
+  ddd-border-radius: 25px;
+  color: inherit;
+  display: block;
+  font-weight: bold;
+  height: 175px;
+  padding: 25px 20px 15px 20px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition: box-shadow 0.2s linear;
+  width: 175px;
+  overflow: hidden;
+}
+
+.sponsor .icon {
+  border: 1px solid #898900;
+  border-radius: 4px;
+  height: 100px;
+  margin-left: calc(87px - 50%);
+  width: 100px;
+}
+
+.icon-sponsor-tally {
+  background: url(/sponsors/tally.jpg) center no-repeat;
+  background-size: contain;
+}
+
+.sponsor .title {
+  padding-top: 10px;
+}
+
+.sponsor-about {
+  font-style: italic;
+  font-size: 20px;
+  height: 175px;
+  line-height: 175px;
+  text-align: center;
+  width: 50%;
+}
 
 /* Zipper */
 

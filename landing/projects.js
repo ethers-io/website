@@ -5,6 +5,11 @@ const Projects = [{
   url: "https://github.com/hodlberg",
   score: 1
 },{
+  image: "unknown_whalestats.svg",
+  name: "Whalestats",
+  url: "",
+  score: 0
+},{
   image: "",
   name: "",
   url: "",
@@ -86,10 +91,10 @@ const Projects = [{
   url: "https://github.com/ScopeLift/umbra-protocol",
   score: 87
 },{
-  image: "unknown_whalestats.svg",
-  name: "Whalestats",
-  url: "",
-  score: 0
+  image: "tallycash_extension.jpg",
+  name: "Tally.cash",
+  url: "https://github.com/tallycash/extension",
+  score: 315
 },{
   image: "unlock-protocol_unlock.png",
   name: "Unlock",
