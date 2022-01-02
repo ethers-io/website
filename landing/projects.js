@@ -51,6 +51,11 @@ const Projects = [{
   url: "https://github.com/ethereum-optimism/optimism",
   score: 507
 },{
+  image: "forta-protocol_forta-agent-sdk.jpg",
+  name: "Forta",
+  url: "https://github.com/forta-protocol/forta-agent-sdk",
+  score: 25
+},{
   image: "mycryptohq_mycrypto.png",
   name: "MyCrypto",
   url: "https://github.com/MyCryptoHQ/MyCrypto",
