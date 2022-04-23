@@ -1,4 +1,5 @@
-importScripts("https:/\/cdn.ethers.io/lib/ethers-5.4.umd.min.js");
+//importScripts("https:/\/cdn.ethers.io/lib/ethers-5.4.umd.min.js");
+importScripts("https:/\/cdnjs.cloudflare.com/ajax/libs/ethers/5.6.4/ethers.umd.min.js");
 importScripts("./inspect.js");
 importScripts("./help.js");
 
