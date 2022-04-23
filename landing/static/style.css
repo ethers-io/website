@@ -236,7 +236,7 @@ a.link:hover {
   display: block;
   flex-grow: 1;
   height: 70px;
-  min-width: 15%;
+  min-width: 10%;
   margin: 0 30px 20px;
   position: relative;
   width: 50px;
@@ -263,20 +263,36 @@ a.link:hover {
 }
 
 /* Sponsors */
+.tier-container {
+  dddborder: 10px solid black;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  margin-bottom: 60px;
+  margin-left: 50%;
+  min-width: 300px;
+  max-width: 1000px;
+  transform: translateX(-50%);
+  width: 100%;
+}
 
 .tiers {
   border-radius: 25px;
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
+  margin: 0 30px;
   padding-left: 50px;
-  margin-left: 50%;
-  transform: translateX(-50%);
-  margin-top: -20px;
-  margin-bottom: 40px;
-  min-width: 850px;
+  dddmargin-left: 50%;
+  dddtransform: translateX(-50%);
+  dddmargin-top: -20px;
+  dddmargin-bottom: 40px;
+  dddmin-width: 850px;
+  dddmax-width: 1000px;
+  position: relative;
+  min-width: 300px;
   max-width: 1000px;
-  width: 100%;
+  width: 50%;
 }
 
 .tiers.gold {
@@ -285,8 +301,13 @@ a.link:hover {
   border: 1px solid #898900;
 }
 
+.tiers.silver {
+  background: #f1f5f5;
+  ddborder: 1px solid #a8abab;
+  border: 1px solid #8f9191;
+}
+
 .tiers .label {
-  color: #898900;
   font-weight: bold;
   height: 175px;
   left: 20px;
@@ -294,6 +315,14 @@ a.link:hover {
   text-align: center;
   transform: rotate(-90deg);
   width: 175px;
+}
+
+.tiers.gold .label {
+  color: #898900;
+}
+
+.tiers.silver .label {
+  color: #8f9191;
 }
 
 .sponsor {
@@ -320,8 +349,16 @@ a.link:hover {
   width: 100px;
 }
 
+.sponsor.no-border .icon {
+  border: none;
+}
+
 .icon-sponsor-tally {
   background: url(/sponsors/tally.jpg) center no-repeat;
+  background-size: contain;
+}
+.icon-sponsor-ankr {
+  background: url(/sponsors/ankr.png) center no-repeat;
   background-size: contain;
 }
 
@@ -465,6 +502,10 @@ a.link:hover {
 }
 .icon-st-pokt {
   background: url(./st-pokt.svg) center no-repeat;
+  background-size: contain;
+}
+.icon-st-ankr {
+  background: url(./st-ankr.png) center no-repeat;
   background-size: contain;
 }
 
