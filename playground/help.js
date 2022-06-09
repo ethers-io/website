@@ -365,12 +365,12 @@ Help = function (ethers) {
         getWebSocketProvider: Func([ "%network", "%apiKey" ], H("AlchemyProvider"), ""),
         //description: "create a Provider connected to the Alchemy WebSocket service",
         //descriptions: [
-        //  "the netwowk to connect to (default: homestead)",
+        //  "the network to connect to (default: homestead)",
         //  "the service API key (default: a highly throttled shared key)"
         //]
       },
       descriptions: [
-        "the netwowk to connect to (default: homestead)",
+        "the network to connect to (default: homestead)",
         "the service API key (default: a highly throttled shared key)"
       ],
       insert: "new AlchemyProvider(%network)"
