@@ -10,21 +10,39 @@
     <meta property="og:image:height" content="634" />
 
     <link href="/static/style.css" rel="stylesheet">
+    <style type="text/css">
+      .banner-warning {
+        background: #f8f8aa;
+        border-bottom: 2px solid #770;
+        color: #114;
+        padding: 20px 30px;
+        text-align: center;
+      }
+      .banner-social {
+        position: relative;
+      }
+    </style>
   </head>
   <body>
-    <div class="social">
-      <a href="https://github.com/ethers-io" rel="noreferrer noopener" target="_blank" class="icon-github"><div class="title">GitHub</div></a>
-      <a href="https://twitter.com/ethersproject" rel="noreferrer noopener" target="_blank" class="icon-twitter"><div class="title">Twitter</div></a>
-      <a href="https://discord.gg/qYtSscGYYc" rel="noreferrer noopener" target="_blank" class="icon-discord"><div class="title">Discord</div></a>
+    <div class="banner-warning">
+      Ethers <b>does NOT</b> have a token. Any token or website <i>claiming</i>
+      to be affiliated with Ethers <b>is a scam</b>.
+    </div>
+    <div class="banner-social">
+      <div class="social">
+        <a href="https://github.com/ethers-io" rel="noreferrer noopener" target="_blank" class="icon-github"><div class="title">GitHub</div></a>
+        <a href="https://twitter.com/ethersproject" rel="noreferrer noopener" target="_blank" class="icon-twitter"><div class="title">Twitter</div></a>
+        <a href="https://discord.gg/qYtSscGYYc" rel="noreferrer noopener" target="_blank" class="icon-discord"><div class="title">Discord</div></a>
+      </div>
     </div>
     <div class="header">
       <div class="logo"></div>
       <div class="title">ethers</div>
-      <div class="description">a simple, compact and complete library<br /> for all your Ethereum needs<br /><br /><span class="smile">:)</span></div>
+      <div class="description">a simple, compact and complete JavaScript<br /> library for all your Ethereum needs<br /><br /><span class="smile">:)</span></div>
     </div>
     <div class="content">
       <div class="section">
-        <div class="title">DOC & TOOLS</div>
+        <div class="title">DOCS &amp; TOOLS</div>
         <div class="buckets">
           <a class="bucket" href="https://docs.ethers.io/">
             <div class="icon icon-docs"></div>
@@ -46,6 +64,7 @@
           </div>
         </div>
       </div>
+      <!--
       <div class="section">
        <div class="title">SPONSORS</div>
        <div class="tier-container">
@@ -55,11 +74,11 @@
             <div class="icon icon-sponsor-tally"></div>
             <div class="title">Tally.cash</div>
           </a>
-          <!--
+          < !--
           <div class="sponsor-about">
             Want to <a class="link" href="/sponsoring.html">become a sponsor too</a>? <code>:)</code>
           </div>
-          -->
+          -- >
         </div>
         <div class="tiers silver">
           <div class="label">SILVER</div>
@@ -67,21 +86,25 @@
             <div class="icon icon-sponsor-ankr"></div>
             <div class="title">Ankr</div>
           </a>
-          <!--
+          < !--
           <div class="sponsor-about">
             Want to <a class="link" href="/sponsoring.html">become a sponsor too</a>? <code>:)</code>
           </div>
-          -->
+          -- >
         </div>
        </div>
        <div class="about">Want to <a class="link" href="/sponsoring.html">become a sponsor too</a>? <code>:)</code></div>
       </div>
+      -->
+      <!--
       <div class="section">
         <a name="projects"></a>
         <div class="title">PROJECTS BUILT ON ETHERS</div>
         <div id="projects" class="zipper"></div>
         <div class="about">...to name a few. <a class="link" href="/building.html">Add your project too</a>!</div>
       </div>
+      -->
+      <!--
       <div class="section">
         <a name="special-thanks"></a>
         <div class="title">SPECIAL THANKS</div>
@@ -104,16 +127,18 @@
         <div class="about">...and the many, many wonderful Gitcoin backers for their continued support and encouragement.</div>
         <div class="separator"></div>
       </div>
+      -->
+      <div class="copyright">Copyright &copy;2021 <a class="link" href="mailto:me@ricmoo.com">Richard Moore</a>. Some rights reserved.</div>
     </div>
-    <div class="copyright">Copyright &copy;2021 <a class="link" href="mailto:me@ricmoo.com">Richard Moore</a>. Some rights reserved.</div>
 
     <div id="templates" style="display: none">
       <a id="template-backer" data-href="https://ethereum.org" rel="noreferrer noopener" target="_blank"><div class="backer"></div><div class="title"></div></a>
       <a id="template-zipper-item" href="#" rel="noreferrer noopener" target="_blank"><div class="image"></div><div class="title"></div></a>
     </div>
-
+<!--
     <script src="/backers.js" type="text/javascript"></script>
     <script src="/projects.js" type="text/javascript"></script>
     <script src="/static/script.js" type="text/javascript"></script>
+-->
   </body>
 </html>
