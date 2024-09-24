@@ -1,0 +1,644 @@
+html {
+  margin: 0;
+}
+
+body {
+  margin: 0;
+  transition: background-color 0.2s linear;
+}
+body.darkMode {
+  background: #111;
+  color: #fff;
+}
+
+/* We initialize all animations off until JavaScript
+   has had a chance to set thigns up */
+
+body.disableAnimations   { transition: none !important; }
+body.disableAnimations * { transition: none !important; }
+
+div { box-sizing: border-box; }
+
+/* Animated classes for showing the sidebar */
+
+.left {
+  transition: width 0.3s ease-out;
+  width: 100%;
+}
+
+.right {
+  bottom: 0;
+  position: fixed;
+  right: -400px;
+  top: 0;
+  transition: transform 0.3s ease-out;
+  width: 400px;
+}
+
+body.showSidebar .left {
+  width: calc(100% - 400px);
+}
+
+body.showSidebar .right {
+  transform: TranslateX(-400px);
+}
+
+#banner-background {
+  background-color: #2535a0;
+  border-bottom: 2px solid #121a4d;
+  height: 70px;  
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+body.darkMode #banner-background {
+  background-color: #182268;
+  border-bottom: 1px solid #2c40c0;
+}
+
+#banner {
+  color: #fff;
+  height: 70px;
+  overflow: hidden;
+  position: fixed;
+  transition: background-color 0.2s linear, color 0.2s linear, width 0.3s ease-out;
+  left: 0;
+  top: 0;
+}
+
+body.darkMode #banner {
+  ddd-color: #3b54ff;
+}
+
+#banner .logo {
+  background: url(./logo.svg) no-repeat center;
+  display: block;
+  height: 70px;
+  left: 20px;
+  opacity: 0.7;
+  position: absolute;
+  top: 0px;
+  width: 70px;
+}
+#banner .title {
+  font-family: monospace;
+  font-size: 30px;
+  line-height: 70px;
+  opacity: 0.7;
+  padding: 0 100px;
+  text-align: center;
+}
+/*
+#banner #button-sidebar {
+  background: url(./logo.svg) no-repeat center;
+  height: 70px;
+  margin-right: 30px;
+  opacity: 0.7;
+  position: absolute;
+  right: 0px;
+  top: 0;
+  width: 70px;
+}
+*/
+
+#button-sidebar {
+  height: 30px;
+  right: 30px;
+  opacity: 0.7;
+  position: absolute;
+  top: 20px;
+  width: 30px;
+}
+
+#button-sidebar .open {
+  background: url(./options-open.svg) no-repeat center;
+  background-size: contain;
+  height: 100%;
+  width: 100%;
+}
+
+#banner #button-darkmode {
+  opacity: 0.7;
+  position: absolute;
+  right: 90px;
+  top: 20px;
+  width: 30px;
+  height: 30px;
+}
+
+#banner #button-darkmode .stars {
+  background: url(./dark-mode-stars.svg);
+  background-size: contain;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+
+  opacity: 0;
+  transition: opacity 0.1s linear 0.15s;
+}
+
+#banner #button-darkmode .light {
+  background: url(./dark-mode-sun.svg);
+  background-size: contain;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+
+  transform: translateY(0);
+  transition: transform 0.3s ease-out 0.3s;
+}
+
+#banner #button-darkmode .dark {
+  background: url(./dark-mode-moon.svg);
+  background-size: contain;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+
+  transform: translateY(70px);
+  transition: transform 0.3s ease-in;
+}
+
+body.darkMode #banner #button-darkmode .stars {
+  opacity: 1;
+  transition: opacity 0.3s linear 0.5s;
+}
+
+body.darkMode #banner #button-darkmode .light {
+  transform: translateY(70px);
+  transition: transform 0.3s ease-in;
+}
+
+body.darkMode #banner #button-darkmode .dark {
+  transform: translateY(0);
+  transition: transform 0.3s ease-out 0.3s;
+}
+
+#output {
+  margin: 0;
+  padding: 90px 30px 0 0;
+  min-height: 100%;
+  overflow: auto;
+}
+#output div.output {
+  font-size: 24px;
+  font-family: monospace;
+  padding: 4px 30px 4px;
+  white-space: pre;
+  width: 100%;
+}
+#output div.output.log-warn {
+  color: #880;
+}
+body.darMode #output div.output.log-warn {
+  color: #aa6;
+}
+#output div.output.log-error {
+  color: 800;
+}
+body.darkMode #output div.output.log-error {
+  color: a66;
+}
+#output div.output.log-log {
+  color: #008;
+}
+body.darkMode #output div.output.log-log {
+  color: #66a;
+}
+#output div.output.log-note {
+  color: #880;
+  font-size: 16px;
+  font-style: italic;
+}
+body.darkMode #output div.output.log-note {
+  color: #aa5;
+}
+#output div.output.log-provider {
+  color: #880;
+  font-size: 16px;
+}
+body.darkMode #output div.output.log-provider {
+  color: #aa5;
+}
+#output div.output.entry {
+  background: url(./caret.svg) no-repeat 8px 12px;
+  background-size: 17px 17px;
+  color: #888;
+}
+body.darkMode #output div.output.entry {
+  color: #aaa;
+}
+#output div.output.result {
+  color: #00f;
+}
+#output div.output.result-bold {
+  color: #00f;
+  font-weight: bold;
+}
+body.darkMode #output div.output.result {
+  color: #88f;
+}
+body.darkMode #output div.output.result-bold {
+  color: #88f;
+  font-weight: bold;
+}
+#output div.output.pending {
+  color: #aaa;
+  font-style: italic;
+}
+#output div.output.error {
+  color: #f00;
+}
+body.darkMode #output div.output.error {
+  color: #f88;
+}
+
+#input-box {
+  position: relative;
+}
+
+textarea {
+  background: url(./caret.svg) no-repeat 8px 12px;
+  background-size: 17px 17px;
+  outline: none;
+  resize: none;
+}
+
+#sizer-container {
+  border: 1px solid green;
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+  top: -20px;
+  white-space: pre-wrap;
+}
+
+.input-style {
+  border: none;
+  font-size: 24px;
+  font-family: monospace;
+  overflow: hidden;
+  padding: 4px 30px 4px;
+  width: 100%;
+}
+
+/* off-screen box to approximate width of monospace font used in the textarea */
+#sizer {
+  position: absolute;
+  font-size: 24px;
+  font-family: monospace;
+  left: 0;
+  transform: translateX(-200%);
+}
+
+
+body.darkMode textarea {
+  color: #eee;
+}
+
+#suggestions {
+  background: #fff;
+  border: 1px solid #66f;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  color: #008;
+  font-family: monospace;
+  font-size: 20px;
+  opacity: 0.9;
+  position: absolute;
+  top: 0px;
+  transform: translateY(-100%);
+  ddd-transition: opacity 0.3s linear;
+  width: 270px;
+}
+
+body.darkMode #suggestions {
+  background: #222;
+  border: 1px solid #888;
+  box-shadow: 0 0 15px #000;
+  color: #888;
+}
+
+body.hideSuggestions #suggestions {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#suggestions > div {
+  border-bottom: 1px solid #66f;
+  padding: 4px 10px;
+}
+
+body.darkMode #suggestions > div {
+  border-bottom: 1px solid #888;
+}
+
+#suggestions > div.selected {
+  background: #66f;
+  color: #fff;
+}
+
+body.darkMode #suggestions > div.selected {
+  background: #555;
+  color: #fff;
+}
+
+#suggestions > div:last-child {
+  border-bottom: none;
+}
+
+#sidebar {
+  background: #333;
+  color: #fff;
+  font-family: monospace;
+  font-size: 18px;
+}
+
+#sidebar .shadow-clip {
+  top: 0px;
+  left: 0;
+  height: 100%; /*calc(100% - 70px); */
+  overflow: hidden;
+  position: absolute;
+  width: 50px;
+}
+
+#sidebar .shadow {
+  box-shadow: -10px 0px 18px 18px #000;
+  position: absolute;
+  height: 100%;
+  width: 0;
+}
+#sidebar .header {
+  background: #111;
+  display: flex;
+  flex-flow: row nowrap;
+  height: 70px;
+  line-height: 70px;
+}
+
+#sidebar .header .tab {
+  flex-grow: 1;
+  text-align: center;
+}
+
+#sidebar .header .tab.selected {
+  background: #333;
+}
+
+#sidebar .header .icon {
+  display: inline-block;
+  height: 70px;
+  opacity: 0.3;
+  cursor: pointer;
+  transform: scale(0.7);
+  transition: opacity 0.3s linear, transform 0.3s ease;
+  width: 50px;
+}
+
+#sidebar .header .tab.selected .icon {
+  opacity: 0.7;
+  transform: scale(1);
+}
+
+.icon-library {
+  background: url(./icon-library.svg) no-repeat center;
+}
+
+.icon-settings {
+  background: url(./icon-settings.svg) no-repeat center;
+}
+
+#sidebar .header .tab .icon:hover {
+  opacity: 0.5;
+}
+
+#sidebar .panel {
+  display: none;
+}
+
+#sidebar .panel.selected {
+  display: block;
+}
+
+#sidebar .banner {
+  color: #aaa;
+  line-height: 30px;
+  padding: 15px 0 0px;
+  text-align: center;
+}
+
+#sidebar .search {
+  border-bottom: 1px solid #222;
+  padding: 15px 20px 30px;
+  position: relative;
+}
+#sidebar .search input {
+  border-radius: 10px;
+  font-size: 20px;
+  height: 30px;
+  outline: none;
+  line-height: 30px;
+  text-align: center;
+  width: 100%;
+}
+#sidebar-items {
+  height: calc(100% - 190px);
+  overflow: auto;
+  padding: 0px 0 30px;
+  position: relative;
+}
+#sidebar-items > div {
+  padding: 4px 20px;
+  transition: background-color 0.3s linear, opacity 0.3s linear;
+}
+
+#sidebar-items > div .group {
+  color: #888;
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 10px 0px 0px 12px;
+}
+
+/* Highlight only the selected options item; if any */
+/*
+#sidebar-items.selected > div .title {
+  opacity: 0.5;
+}
+#sidebar-items.selected > div.selected .title {
+  opacity: 1;
+}
+*/
+#sidebar-items > div.selected {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Add expanded arrows to the options items */
+#sidebar-items div .title:before {
+  content: "\00a0\00a0\25b6\00a0";
+}
+#sidebar-items > div.selected .title:before {
+  content: "\00a0\00a0\25bc\00a0";
+}
+
+/* Options item title */
+#sidebar-items div .title {
+  color: #ddd;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#sidebar-items div .title .prefix {
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+#sidebar-items div.selected .title {
+  font-weight: bold;
+}
+#sidebar-items div .item {
+  position: relative;
+}
+#sidebar-items div .item.experimental {
+  pointer-events: none;
+  opacity: 0.2;
+}
+#sidebar-items div .item .use {
+  color: #88f;
+  font-size: 16px;
+  position: absolute;
+  cursor: pointer;
+  right: 0px;
+}
+#sidebar-items div .item .use:hover {
+  color: #8f8;
+}
+
+/* Info Blob */
+#sidebar-items div .info .usage {
+  display: none; /* Maybe don't need this?? */
+}
+#sidebar-items div .info {
+  color: #ddd;
+  overflow: auto;
+  padding-left: 23px;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+}
+#sidebar-items div.selected .info {
+  color: #ddd;
+  padding-right: 7px;
+}
+/*
+#sidebar-items div .info .usage {
+  margin-bottom: 5px;
+  white-space: nowrap;
+}
+*/
+#sidebar-items div .info > .description {
+  color: #aaa;
+  font-size: 16px;
+  padding-top: 4px;
+}
+#sidebar-items div .info .no-params {
+  margin-bottom: 5px;
+  line-height: 20px;
+  font-style: italic;
+  color: #aaa;
+  font-family: sans-serif;
+  font-size: 16px;
+  padding: 15px 30px 15px 0;
+  text-align: center;
+}
+#sidebar-items div .info > .returns:before {
+  content: "\21aa\00a0";
+}
+#sidebar-items div .info > .returns {
+  color: #4a4;
+  font-size: 16px;
+  padding-top: 4px;
+}
+#sidebar-items div .info .param {
+  margin: 5px 0;
+}
+#sidebar-items div .info .param .name {
+  font-weight: bold;
+}
+#sidebar-items div .info .param .name i {
+  color: #aaa;
+  font-size: 12px;
+  font-weight: normal;
+  position: relative;
+  top: -4px;
+}
+#sidebar-items div .info .param .description {
+  color: #aaa;
+  font-family: sans-serif;
+  font-size: 16px;
+  padding-left: 20px;
+}
+
+#sidebar-items div.item .option {
+  padding-left: 23px;
+}
+
+#sidebar-items div.item .option .checkbox {
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  display: inline-block;
+  height: 17px;
+  position: absolute;
+  cursor: pointer;
+  right: 0px;
+  width: 17px;
+}
+
+#sidebar-items div.item .option .checkbox .checkmark {
+  background: url(./checkmark.svg) no-repeat center;
+  height: 23px;
+  left: 1px;
+  opacity: 0;
+  position: absolute;
+  transform: translate(-7px, 3px) scale(0.3);
+  transition: opacity 0.2s linear, transform 0.2s ease-out;
+  top: -5px;
+  width: 23px;
+}
+
+#sidebar-items div.item .option .checkbox.selected .checkmark {
+  opacity: 1;
+  transform: translate(0, 0) scale(1.0);
+  transition: opacity 0.2s linear, transform 0.2s cubic-bezier(0.2, 0.4, 0.6, 1.8);
+}
+
+#sidebar-items .option-info {
+  color: #aaa;
+  font-size: 16px;
+  font-style: italic;
+  padding: 4px 13px 5px 23px;
+}
+
+#sidebar-items .option-info code {
+  color: #666;
+  font-style: normal;
+}
+
+#sidebar-items .button {
+  border: 1px solid #ddd;
+  color: #ddd;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 35px;
+  margin: 5px 23px;
+  text-align: center;
+  transition: background-color 0.1s linear, color 0.1s linear;
+}
+
+#sidebar-items .button:hover {
+  background: #ddd;
+  border: 1px solid #111;
+  color: #111;
+  transition: background-color 0.2s linear, color 0.2s linear;
+}

@@ -1,0 +1,88 @@
+<html>
+  <head>
+    <title>ethers playground</title>
+
+    <meta property="og:title" content="Ethers Playground" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://playground.ethers.org" />
+    <meta property="og:image" content="https://playground.ethers.org/og-preview.jpg" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+
+    <link href="/static/style.css" rel="stylesheet">
+  </head>
+  <body class="showSidebar disableAnimations hideSuggestions preserveHistory">
+    <div id="banner-background"></div>
+    <div id="banner" class="left">
+      <div class="title">ethers playground</div>
+      <a class="logo" href="https://ethers.org" id="logo"></a>
+      <div id="button-darkmode">
+        <div class="stars"></div>
+        <div class="dark"></div>
+        <div class="light"></div>
+      </div>
+      <div id="button-sidebar">
+        <div class="open"></div>
+      </div>
+    </div>
+    <div id="output" class="left">
+      <div id="input-box">
+        <div id="suggestions"></div>
+        <textarea id="input" class="input-style" autocorrect="false" autocapitalize="false" spellcheck="false"></textarea>
+        <div id="sizer-container" class="input-style"><span id="sizer-content">Sizer Content</span><span id="sizer-caret"></span></div>
+      </div>
+    </div>
+    <div id="sidebar" class="right">
+      <div class="shadow-clip"><div class="shadow"></div></div>
+      <div class="header">
+        <div class="tab selected"><a class="icon icon-library" data-panel="library"></a></div>
+        <div class="tab"><a class="icon icon-settings" data-panel="settings"></a></div>
+      </div>
+      <div id="panel-library" class="panel selected">
+        <div class="banner">LIBRARY</div>
+        <div class="search"><input id="search" placeholder="search..."></div>
+        <div id="sidebar-items"></div>
+      </div>
+      <div id="panel-settings" class="panel">
+        <div class="banner">SETTINGS</div>
+        <div id="sidebar-items">
+          <div><div class="group">Experimental</div></div>
+          <div><div class="item">
+            <span class="option">Auto-Completion<span class="checkbox" data-key="xAutoComplete"><span class="checkmark"></span></span></span>
+            <div class="option-info">
+              Provide an inline popup while typing code making suggestion based
+              on the current identifier-chain.
+            </div>
+          </div></div>
+          <div><div class="item">
+            <span class="option">Pass-Through Provider<span class="checkbox" data-key="xInjectedProvider"><span class="checkmark"></span></span></span>
+            <div class="option-info">
+              Allow access to any <code>window.ethereum</code> object via
+              a pass-through provider.
+            </div>
+          </div></div>
+          <div><div class="group">Stored State</div></div>
+          <div><div class="item">
+            <span class="option">Preserve History<span class="checkbox" data-key="preserveHistory"><span class="checkmark"></span></span></span>
+            <div class="option-info">
+              Locally store the command history between sessions.
+            </div>
+          </div></div>
+          <div><div class="item">
+            <div class="button" id="button-clear-history">Clear History</div>
+          </div></div>
+          <div><div class="item">
+            <div class="button" id="button-clear-settings">Reset Default Settings</div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.6.4/ethers.umd.min.js" integrity="sha512-EKCEAWajhazrbxxXV+UKphn1Vl1MhIbZxCy5kPVzVrTRKYJ96r7QtPgnK+Zvoi2Er1S3jU/y+ZgCGMA+A7Hdug==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!--
+    <script type="text/javascript" src="https://cdn.ethers.io/lib/ethers-5.4.umd.min.js"></script>
+    -->
+    <script type="text/javascript" src="./static/help.js"></script>
+    <script type="text/javascript" src="./static/script.js"></script>
+  </body>
+</html>
+
