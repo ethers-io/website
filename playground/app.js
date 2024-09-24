@@ -1,3 +1,11 @@
+/**
+ *  App code that runs in the main window.
+ *
+ *  This creates a Worker, which is where all user-provided
+ *  code executes, keeping it isolated in the event they paste
+ *  code from an untrusted source.
+ */
+
 const input = document.getElementById("input");
 const inputBox = document.getElementById("input-box");
 const output = document.getElementById("output");

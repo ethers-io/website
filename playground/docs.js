@@ -1,3 +1,7 @@
+/**
+ *  This is used by the sidebar docs.
+ */
+
 // Help Items
 // name: The string to show as the title and will be called with params
 // params: Each parameter name; prefix optional parameter with a %
