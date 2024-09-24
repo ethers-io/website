@@ -122,10 +122,16 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
         // An instance of a class we provide
         match = lookupClass.get(value.constructor);
         if (match && match.cls) {
+          const properties = Object.assign({ }, match.properties);
+          for (const key in value) {
+            if (!(key in properties)) {
+              properties[key] = { returns: Returns.from("_") };
+            }
+          }
           return new DotFollower(new PropsFollower({
             name: name,
             returns: Returns.from(match.name)
-          }, match.properties));
+          }, properties));
         }
 
         // Something basic
@@ -322,6 +328,7 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
       return null;
     }
 
+    /*
     function getInspect(value) {
       if (value == null) { return null };
 
@@ -351,6 +358,7 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
 
       return typeof(value);
     }
+    */
 
     function _getSigners() {
       return [ ];
@@ -467,28 +475,12 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
 
     // Pretty Format some common ethers classes
 
-    ethers.FixedNumber.prototype[inspect.custom] = function() {
-      return `FixedNumber { format: ${ S(this.format.name) }, value: ${ S(this.toString()) } }`;
-    };
-
-    ethers.Network.prototype[inspect.custom] = function() {
-      return `Network { name: ${ S(this.name) }, chainId: ${ this.chainId} }`;
-    };
-
-    ethers.SigningKey.prototype[inspect.custom] = function() {
-      return `SigningKey { privateKey: "[REDACTED]", publicKey: ${ S(this.publicKey) } }`;
-    };
-
-    ethers.Signature.prototype[inspect.custom] = function() {
-      return `Signature { r: ${ S(this.r) }, s: ${ S(this.s) }, v: ${ this.v } }`;
-    };
-
-    // @TODO: TypedDataEncoder, AbiCoderr
-
-    ethers.Wordlist.prototype[inspect.custom] = function() {
-      return `Wordlist { locale: ${ S(this.locale) } }`;
-    };
-
+    Help.forEach((help) => {
+       if (!help.cls || !help.inspect) { return; }
+       help.cls.prototype[inspect.custom] = function() {
+         return inspect(help.inspect.call(this));
+       }
+    });
 
     Uint8Array.prototype[inspect.custom] = function() {
       return `Uint8Array { ${ Array.prototype.map.call(this, (i) => String(i)).join(", ") } }`;
