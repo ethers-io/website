@@ -1,5 +1,4 @@
-//importScripts("https:/\/cdn.ethers.io/lib/ethers-5.4.umd.min.js");
-importScripts("https:/\/cdnjs.cloudflare.com/ajax/libs/ethers/5.6.4/ethers.umd.min.js");
+importScripts("https:\/\/cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js");
 importScripts("./inspect.js");
 importScripts("./help.js");
 
@@ -456,74 +455,46 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
       })
     });
 
-/*
-    const globals = [ "getGlobals" ];
-    for (const key in self) { globals.push(key); }
-
-    getGlobals = function() {
-      const result = [];
-      for (const key in self) {
-        if (globals.indexOf(key) >= 0) { continue; }
-        result.push(key);
-      }
-      return result;
+    // Expose all Ethers function, classes and constants
+    for (const key in ethers) {
+      self[key] = ethers[key];
     }
-*/
-    // Expose basic ethers library components
-    version = ethers.version;
 
-    BigNumber = ethers.BigNumber;
-    Contract = ethers.Contract;
-    ContractFactory = ethers.ContractFactory;
-    FixedNumber = ethers.FixedNumber;
-    VoidSigner = ethers.VoidSigner;
-    Wallet = ethers.Wallet;
-
-    providers = ethers.providers;
-    constants = ethers.constants;
-    utils = ethers.utils;
-
-    abiCoder = ethers.utils.defaultAbiCoder;
-
-    BN = function(v) { return ethers.BigNumber.from(v); }
-
+    // Some convenient things to expose
+    abiCoder = ethers.AbiCoder.defaultAbiCoder();
     provider = ethers.getDefaultProvider();
 
-    [
-      "getAddress", "getContractAddress",
-      "arrayify", "concat", "hexlify", "zeroPad",
-      "joinSignature", "splitSignature",
-      "id", "keccak256", "namehash", "sha256",
-      "parseEther", "parseUnits", "formatEther", "formatUnits",
-      "randomBytes",
-      "parseTransaction", "serializeTransaction",
-      "toUtf8Bytes", "toUtf8String"
-    ].forEach((util) => {
-        self[util] = ethers.utils[util];
-    });
 
     // Pretty Format some common ethers classes
-
-    ethers.BigNumber.prototype[inspect.custom] = function() {
-      return `BigNumber { value: ${ S(this.toString()) } }`;
-    };
 
     ethers.FixedNumber.prototype[inspect.custom] = function() {
       return `FixedNumber { format: ${ S(this.format.name) }, value: ${ S(this.toString()) } }`;
     };
 
+    ethers.Network.prototype[inspect.custom] = function() {
+      return `Network { name: ${ S(this.name) }, chainId: ${ this.chainId} }`;
+    };
+
+    ethers.SigningKey.prototype[inspect.custom] = function() {
+      return `SigningKey { privateKey: "[REDACTED]", publicKey: ${ S(this.publicKey) } }`;
+    };
+
+    ethers.Signature.prototype[inspect.custom] = function() {
+      return `Signature { r: ${ S(this.r) }, s: ${ S(this.s) }, v: ${ this.v } }`;
+    };
+
+    // @TODO: TypedDataEncoder, AbiCoderr
+
     ethers.Wordlist.prototype[inspect.custom] = function() {
       return `Wordlist { locale: ${ S(this.locale) } }`;
     };
+
 
     Uint8Array.prototype[inspect.custom] = function() {
       return `Uint8Array { ${ Array.prototype.map.call(this, (i) => String(i)).join(", ") } }`;
     };
 
-    //ethers.providers.Formatter.prototype[inspect.custom] = function() {
-    //  return `Formatter: { }`;
-    //};
-
+/*
     ethers.providers.AlchemyProvider.prototype[inspect.custom] = function() {
       return new inspect.NamedObject(this.constructor.name, {
         network: this._network.name,
@@ -574,6 +545,7 @@ const { _onMessage, ethereum } = (function({ Basic, Globals, Help, Returns }, ev
         loadBalancer: this.loadBalancer
       });
     };
+*/
 
     // Set up an alias to self as window
     Object.defineProperty(self, "signers", {

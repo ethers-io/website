@@ -214,8 +214,8 @@ const worker = (function () {
       ready = true;
       addOutput("entry", "version");
       await evaluate("version");
-      addOutput("entry", "provider.network.name");
-      await evaluate("provider.network.name");
+      addOutput("entry", "(await provider.getNetwork()).name");
+      await evaluate("(await provider.getNetwork()).name");
       input.focus();
 
     } else if ("result" in data) {
@@ -349,7 +349,7 @@ const { getSafeCode, getTokens } = (function() {
 
         // Hit an opening bracket with no matchin closing context
         if (matching.length === 0) {
-          console.log("start of internal expression");
+          //console.log("start of internal expression");
           cursor++;
           break;
         }
@@ -357,7 +357,7 @@ const { getSafeCode, getTokens } = (function() {
         // Verify the opening bracket type matches the closing
         const bracket = matching.pop();
         if (closers[chr] !== bracket.chr) {
-          console.log("mismatch");
+          //console.log("mismatch");
           cursor++;
           break;
         }
@@ -1003,14 +1003,14 @@ input.onkeyup = function(e) {
 
   let lastGroup = null;
   const sidebarItems = document.getElementById("sidebar-items");
-  Help.forEach((help) => {
+  Docs.forEach((doc) => {
 
     const div = create("div");
     sidebarItems.appendChild(div);
 
-    if (help.group) {
-      lastGroup = help;
-      const divHeader = create("div", help.group, "group");
+    if (doc.group) {
+      lastGroup = doc;
+      const divHeader = create("div", doc.group, "group");
       div.appendChild(divHeader);
       return;
     }
@@ -1023,7 +1023,7 @@ input.onkeyup = function(e) {
     const spanTitle = create("span", null, "title");
     divItem.appendChild(spanTitle);
 
-    const match = help.name.match(/^(new )?(.*\.)?([^.]+)$/);
+    const match = doc.name.match(/^(new )?(.*\.)?([^.]+)$/);
     let hasNew = match[1], prefix = match[2], name = match[3];
     if (hasNew) { spanTitle.appendChild(create("span", hasNew)); }
     if (prefix) { spanTitle.appendChild(create("span", prefix, "prefix")); }
@@ -1037,15 +1037,15 @@ input.onkeyup = function(e) {
 
     const divInfo = create("div", null, "info");
 
-    divInfo.appendChild(create("div", help.description, "description"));
+    divInfo.appendChild(create("div", doc.description, "description"));
 
-    if (help.returns) {
-      divInfo.appendChild(create("div", help.returns, "returns"));
+    if (doc.returns) {
+      divInfo.appendChild(create("div", doc.returns, "returns"));
     }
 
-    if (help.params != null) {
-      if (help.params.length) {
-        help.params.forEach((name, index) => {
+    if (doc.params != null) {
+      if (doc.params.length) {
+        doc.params.forEach((name, index) => {
           const divParam = create("div", null, "param");
           const divName = create("div", name.match(/^%?(.*)$/)[1], "name");
           if (name[0] === "%") {
@@ -1054,7 +1054,7 @@ input.onkeyup = function(e) {
             params.push(`%${ name }`);
           }
           divParam.appendChild(divName);
-          divParam.appendChild(create("div", help.descriptions[index], "description"));
+          divParam.appendChild(create("div", doc.descriptions[index], "description"));
 
           divInfo.appendChild(divParam);
         });
@@ -1091,11 +1091,11 @@ input.onkeyup = function(e) {
     };
 
     spanUse.onclick = function() {
-      let insert = help.insert;
+      let insert = doc.insert;
       if (insert == null) {
         insert = params.join(", ");
-        if (help.params != null) { insert = `(${ insert })`; }
-        insert = help.name + insert;
+        if (doc.params != null) { insert = `(${ insert })`; }
+        insert = doc.name + insert;
       }
       if (group && group.insert) {
         if (insert.substring(0, 4) === "new ") {
@@ -1115,9 +1115,9 @@ input.onkeyup = function(e) {
     const query = search.value.trim().toLowerCase();
     const groups = [ ];
     Array.prototype.forEach.call(sidebarItems.children, (child, index) => {
-      if (Help[index].group != null) {
+      if (Docs[index].group != null) {
         groups.push({ count: 0, child });
-      } else if (query === "" || Help[index].name.toLowerCase().indexOf(query) >= 0) {
+      } else if (query === "" || Docs[index].name.toLowerCase().indexOf(query) >= 0) {
         child.style.display = "block";
         groups[groups.length - 1].count++;
       } else {
