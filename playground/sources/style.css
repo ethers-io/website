@@ -90,18 +90,6 @@ body.darkMode #banner {
   padding: 0 100px;
   text-align: center;
 }
-/*
-#banner #button-sidebar {
-  background: url(./logo.svg) no-repeat center;
-  height: 70px;
-  margin-right: 30px;
-  opacity: 0.7;
-  position: absolute;
-  right: 0px;
-  top: 0;
-  width: 70px;
-}
-*/
 
 #button-sidebar {
   height: 30px;
