@@ -844,6 +844,58 @@ Help = function (ethers) {
       }
     },
     {
+      name: "HDNodeWallet",
+      cls: ethers.HDNodeWallet,
+      inherits: "BaseWallet",
+      staticProperties: {
+        createRandom: Func([ "%password", "%path", "%wordlist" ], H("HDNodeWallet")),
+        fromMnemonic: Func([ "mnemonic", "%path" ], H("HDNodeWallet")),
+        fromPhrase: Func([ "phrase", "%password", "%path", "%wordlist" ], H("HDNodeWallet")),
+        fromSeed: Func([ "seed" ], H("HDNodeWallet")),
+        fromExtendedKey: Func([ "extendedKey" ], B("_")),
+      },
+      properties: {
+        chainCode: { returns: B("string") },
+        depth: { returns: B("number") },
+        extendedKey: { returns: B("string") },
+        fingerprint: { returns: B("string") },
+        index: { returns: B("number") },
+        mnemonic: { returns: H("Mnemonic") },
+        parentFingerprint: { returns: B("string") },
+        path: { returns: B("string") },
+        publicKey: { returns: B("string") },
+
+        deriveChild: Func([ "index" ], H("HDNodeWallet")),
+        derivePath: Func([ "path" ], H("HDNodeWallet")),
+
+        hasPath: Func([ ], B("boolean")),
+        neuter: Func([ ], H("HDNodeVoidWallet")),
+
+        encrypt: Func([ "password", "%progress" ], B("Promise")),
+        encryptSync: Func([ "password" ], B("string")),
+      }
+    },
+    {
+      name: "HDNodeVoidWallet",
+      cls: ethers.HDNodeVoidWallet,
+      inherits: "BaseWallet",
+      properties: {
+        chainCode: { returns: B("string") },
+        depth: { returns: B("number") },
+        extendedKey: { returns: B("string") },
+        fingerprint: { returns: B("string") },
+        index: { returns: B("number") },
+        parentFingerprint: { returns: B("string") },
+        path: { returns: B("_") },
+        publicKey: { returns: B("string") },
+
+        deriveChild: Func([ "index" ], H("HDNodeVoidWallet")),
+        derivePath: Func([ "path" ], H("HDNodeVoidWallet")),
+
+        hasPath: Func([ ], B("boolean")),
+      }
+    },
+    {
       name: "JsonRpcSigner",
       cls: ethers.JsonRpcSigner,
       inherits: "Signer",
@@ -1347,49 +1399,6 @@ Help = function (ethers) {
         "the payload body to send (default: none)",
         "a function to post-process the result"
       ]
-    },
-    {
-      name: "HDNode",
-      cls: ethers.utils.HDNode,
-      description: "",
-      staticProperties: {
-        fromExtendedKey: Func([ "extendedKey" ], H("HDNode"), "create a new HDNode from an extended public or private key"),
-        //descriptions: [
-        //  "the bytes-like extended key"
-        //]
-        fromMnemonic: Func([ "mnemoinc", "%password", "%wordlist" ], H("HDNode"), "create a new HDNode from a mnemonic"),
-        //descriptions: [
-        //  "the BIP-44 mnemonic",
-        //  'the password to decrypt with (defualt: no password)',
-        //  "the Wordlist or locale to use (default: en)"
-        //]
-        fromSeed: Func([ "seed" ], H("HDNode"), "create a new HDNode from a seed"),
-        //descriptions: [
-        //  "the bytes-like seed"
-        //]
-      },
-      properties: {
-        privateKey: { returns: B("string") },
-        publicKey: { returns: B("string") },
-
-        fingerprint: { returns: B("string") },
-        parentFingerprint: { returns: B("string") },
-
-        address: { returns: B("string") },
-
-        mnemonic: { returns: B("string") },
-        path: { returns: B("string") },
-
-        chainCode: { returns: B("string") },
-
-        index: { returns: B("number") },
-        depth: { returns: B("number") },
-
-        extendedKey: { returns: B("string") },
-
-        neuter: Func([], H("HDNode"), ""),
-        derivePath: Func([ "path" ], H("HDNode"), ""),
-      }
     },
     {
       name: "resolveProperties",
